@@ -854,7 +854,7 @@ function icTotal(filas){let mx=NaN;const dec=/^-?\d{1,3}(?:[.,]?\d{3})*[.,]\d{2}
   filas.forEach((row,r)=>{const t=row.map(celdaTxt).join(' ');if(!/total|a pagar/i.test(t)||/sub\s*total/i.test(t))return;let vs=[];for(let k=r;k<=Math.min(filas.length-1,r+2);k++)vs.push(...vals(filas[k]));if(!vs.length&&filas[r+3])vs=vals(filas[r+3]);vs.forEach(v=>{if(!(v<=mx))mx=v})});return isNaN(mx)?'':mx}
 function icNumFactura(filas){for(let r=0;r<filas.length-1;r++){const row=filas[r].map(celdaTxt);const j=row.findIndex(c=>/^(n[º°o.]*\s*(de\s*)?factura|factura\s*n[º°o.]*|n[úu]m(ero)?\.?\s*(de\s*)?factura)\s*:?$/i.test(c));if(j<0)continue;const sig=filas[r+1].map(celdaTxt);const v=(j===row.length-1?sig[sig.length-1]:sig[j])||'';if(/\d/.test(v)&&!/^\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}$/.test(v))return v.replace(/\s+/g,'')}return ''}
 /* ==== v34: SINCRONIZACIÓN CON GOOGLE (enchufe intercambiable: hoy Google Apps Script, mañana otro servidor) ==== */
-const APP_VER=35,SYNC_KEY='gestionTecnicaSync_v1';
+const APP_VER=37,SYNC_KEY='gestionTecnicaSync_v1';
 const syncEst={enCurso:false,pendiente:false,timer:null,ultimoOk:0,tipo:'',txt:'',iniciado:false,avisoDup:''};
 function syncCfg(){try{return JSON.parse(localStorage.getItem(SYNC_KEY)||'{}')||{}}catch(e){return {}}}
 function syncCfgGuardar(c){try{localStorage.setItem(SYNC_KEY,JSON.stringify(c))}catch(e){}}
