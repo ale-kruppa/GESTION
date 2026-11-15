@@ -1,5 +1,6 @@
 /* App de presupuestos: guarda la app en el aparato para que abra sin internet.
-   Con internet trae siempre la última versión (si tarda más de 6 s, abre la guardada). */
+   Con internet trae siempre la última versión (si tarda más de 6 s, abre la guardada).
+   El creador de PDF (carpeta libs/) se guarda una vez y después se usa siempre el guardado. */
 const CACHE = 'presupuestos-v1';
 const ARCHIVOS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-180.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARCHIVOS)).then(() => self.skipWaiting())); });
@@ -7,6 +8,17 @@ self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Pr
 self.addEventListener('fetch', e => {
   const r = e.request;
   if (r.method !== 'GET' || new URL(r.url).origin !== location.origin) return;
+  if (new URL(r.url).pathname.includes('/libs/')) {
+    e.respondWith((async () => {
+      const c = await caches.open(CACHE);
+      const guardada = await c.match(r);
+      if (guardada) return guardada;
+      const res = await fetch(r);
+      if (res && res.ok) await c.put(r, res.clone());
+      return res;
+    })());
+    return;
+  }
   e.respondWith((async () => {
     const c = await caches.open(CACHE);
     const red = fetch(r, { cache: 'no-cache' }).then(res => { if (res && res.ok) c.put(r, res.clone()); return res; });
