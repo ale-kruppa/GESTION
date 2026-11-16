@@ -23,7 +23,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .celda.chev:after{content:"›";color:var(--sec);opacity:.5;font-size:24px;line-height:1;margin-left:2px}
 .celda input.campo,.celda textarea.campo,.celda select.campo{flex:1;border:0;background:transparent;outline:none;min-width:0;padding:2px 0;font-size:17px}
 .celda input.num{text-align:right;max-width:120px}
-.celda textarea.campo{resize:vertical;min-height:90px;line-height:1.4}
+.celda textarea.campo{resize:vertical;min-height:90px;line-height:1.4}.celda textarea.campo.corto{min-height:58px}
 .ico{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#fff;font-size:16px;flex:0 0 30px}
 .azul{color:var(--azul)}.rojo{color:var(--rojo)}
 .buscar{display:flex;align-items:center;gap:8px;background:var(--relleno);border-radius:11px;padding:9px 12px}.buscar input{flex:1;border:0;background:transparent;outline:none;font-size:17px}
@@ -45,7 +45,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .pv-sel{padding:10px 16px;border-top:.5px solid var(--linea)}.pv-sel-t{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px;font-size:15px}.pv-opt{display:flex;gap:8px;align-items:center;padding:9px 11px;border-radius:10px;background:var(--relleno);cursor:pointer;font-size:15px;margin-top:4px}.pv-opt.on{background:light-dark(#e5f0ff,#10294d);cursor:default}.pv-opt.pv-roja{outline:1px solid var(--rojo)}.pv-drop{margin-top:6px}.pv-falta{color:var(--rojo);font-weight:600}.pv-sel input.search{width:100%;border:0;background:var(--relleno);border-radius:10px;padding:9px 12px;font-size:16px;outline:none;margin-top:8px}.pv-todos{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--sec);margin-top:8px}.pv-sel .btn.small{border:0;background:none;color:var(--azul);padding:4px 0;font-size:15px;cursor:pointer}.smallnote{font-size:13px;color:var(--sec)}</style></head><body><div id="app"></div>
 <script>
 /* ===== APP DE PRESUPUESTOS (apoyo en obra y oficina) — núcleo ===== */
-const APP_PRES_VER=2;
+const APP_PRES_VER=3;
 const LS_CFG='presCampo_cfg',LS_BASE='presCampo_base',LS_DATOS='presCampo_datos';
 function leerLS(k,def){try{const v=JSON.parse(localStorage.getItem(k)||'null');return v==null?def:v}catch(e){return def}}
 function escribirLS(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){alert('⚠ No se pudo guardar en este aparato: '+(e&&e.message||e));return false}}
@@ -131,7 +131,7 @@ const reAmp=a=>new RegExp('(^|[^\\d])'+a+'\\s?a\\b');
 const reSec=s=>new RegExp('(^|[^\\d.,])'+String(s).replace(/[.,]/,'[.,]')+'\\s?(mm|x|²|\\b)');
 const RE_MONO=/1p\+n|\b2p\b|bipolar|monof|\bmono\b/,RE_TRI=/\b4p\b|3p\+n|tetrapolar|trifas|\btri\b/;
 const RE_CABLE={'H07Z1-K':/h07z1/,'RZ1-K':/rz1/,'ES07Z1-K':/es07z1/,'H07V-K':/h07v/};
-const nuevaT=tipo=>({on:false,resp:TPL[tipo].nuevo(),extra:[],mo:'',elegidos:{},totalManual:''});
+const nuevaT=tipo=>({on:false,resp:TPL[tipo].nuevo(),extra:[],mo:'',moDesc:'',obs:'',elegidos:{},totalManual:''});
 /* ---------- CUADRO ---------- */
 const TPL={};
 TPL.cuadro={t:'Cambio o reforma de cuadro',corto:'Cuadro',ico:'▦',color:'#007aff',
@@ -139,45 +139,57 @@ TPL.cuadro={t:'Cambio o reforma de cuadro',corto:'Cuadro',ico:'▦',color:'#007a
   preguntas(t,i){const r=t.resp;let h='<div class="etq t">Magnetotérmicos</div><div class="grupo">'+r.mt.map((x,j)=>celdaStep((x.p==='mono'?'Monofásico ':'Trifásico ')+x.a+' A',x.n,`tStep(${i},'mt',${j},`)).join('')+'<div class="celda tap" onclick="hojaOtroMt('+i+')"><div class="t azul">＋ Otro calibre</div></div></div>';
     h+='<div class="etq t">Diferenciales</div><div class="grupo">'+r.dif.map((x,j)=>celdaStep(x.p+' '+x.a+' A · '+x.s+' mA',x.n,`tStep(${i},'dif',${j},`)).join('')+'<div class="celda tap" onclick="hojaOtroDif('+i+')"><div class="t azul">＋ Otro diferencial</div></div></div>';
     h+='<div class="etq t">Cuadro</div><div class="grupo">'+celdaSeg('Cuadro de (módulos)',['8','12','18','24','36','48'],r.modulos,i,'modulos',true)+celdaSw('Bornero de tierra',r.bornero,i,'bornero')+'</div>';
-    h+='<div class="etq t">Cableado</div><div class="grupo">'+celdaSeg('Tipo de cable',['H07Z1-K','RZ1-K','ES07Z1-K'],r.cable,i,'cable')+celdaSeg('Sección (mm²)',['1,5','2,5','4','6','10'],r.sec,i,'sec')+celdaNum('Metros',r.metros,i,'metros','m')+'</div>';
+    h+='<div class="etq t">Cableado</div><div class="grupo">'+celdaSeg('Sección (mm²)',['1,5','2,5','4','6','10'],r.sec,i,'sec')+celdaNum('Metros',r.metros,i,'metros','m')+'</div>';
     h+='<div class="etq t">DI</div><div class="grupo">'+celdaSw('Se cambia la DI',r.di,i,'di')+(r.di?celdaSeg('Sección (mm²)',['6','10','16','25'],r.diSec,i,'diSec')+celdaNum('Metros',r.diM,i,'diM','m'):'')+'</div>';return h},
   lineas(t){const r=t.resp,L=[];
     r.mt.forEach(x=>{if(x.n>0)L.push({clave:'mt:'+x.p+':'+x.a,txt:'Magnetotérmico '+(x.p==='mono'?'1P+N':'4P')+' '+x.a+' A',q:x.n,req:[/magneto/,reAmp(x.a),x.p==='mono'?RE_MONO:RE_TRI]})});
     r.dif.forEach(x=>{if(x.n>0)L.push({clave:'dif:'+x.p+':'+x.a+':'+x.s,txt:'Diferencial '+x.p+' '+x.a+' A '+x.s+' mA',q:x.n,req:[/diferen/,reAmp(x.a),new RegExp('(^|\\D)'+x.s+'\\s?ma'),x.p==='2P'?RE_MONO:RE_TRI]})});
     if(r.modulos)L.push({clave:'cuadro',txt:'Cuadro de '+r.modulos+' módulos',q:1,req:[/cuadro|caja de distrib/,reNum(r.modulos)],pref:[/modul|bocas|\bmod\b/]});
     if(r.bornero)L.push({clave:'bornero',txt:'Bornero de tierra',q:1,req:[/born|regleta|pletina/],pref:[/tierra/]});
-    if(num(r.metros)>0)L.push({clave:'cable',txt:'Cable '+r.cable+' '+r.sec+' mm²',q:num(r.metros),unidad:'m',req:[/cable|hilo|conductor/,reSec(r.sec)],pref:[RE_CABLE[r.cable]]});
+    if(num(r.metros)>0)L.push({clave:'cable',txt:'Cable '+r.sec+' mm²',q:num(r.metros),unidad:'m',req:[/cable|hilo|conductor/,reSec(r.sec)]});
     if(r.di&&num(r.diM)>0)L.push({clave:'di',txt:'Cable DI '+r.diSec+' mm²',q:num(r.diM),unidad:'m',req:[/cable|hilo|conductor/,reSec(r.diSec)],pref:[/es07z1|rz1/]});
     return L},
   resumen(t){const r=t.resp,p=[];const nm=r.mt.reduce((a,x)=>a+x.n,0),nd=r.dif.reduce((a,x)=>a+x.n,0);if(nm)p.push(nm+' magnetotérmicos');if(nd)p.push(nd+' diferenciales');if(r.modulos)p.push('cuadro de '+r.modulos+' módulos');if(r.di)p.push('cambio de DI');return p.join(', ')}};
 /* ---------- CONTADORES ---------- */
+/* v3: armario de contadores ya montado (se elige de los materiales); terminales automáticos; sin módulos sueltos */
+const SEC_GRANDES=['16','25','35','50','70','95','120','150','185','240'];
+const nTermCont=r=>num(r.mono)*6+num(r.tri)*12;
 TPL.contadores={t:'Contadores',corto:'Contadores',ico:'▤',color:'#5856d6',
-  nuevo:()=>({cgp:true,esq:'9',int:'160',lga:false,lgaMat:'Cobre',lgaSec:'50',lgaM:'',mono:0,tri:0,ubic:'Armario',reub:false,di:false,dis:[]}),
-  preguntas(t,i){const r=t.resp;let h='<div class="etq t">Caja general de protección '+sw(r.cgp,i,'cgp')+'</div>'+(r.cgp?'<div class="grupo">'+celdaSeg('Esquema',['7','9','10','11'],r.esq,i,'esq')+celdaSeg('Intensidad (A)',['100','160','250','400'],r.int,i,'int')+'</div>':'<div class="nota">No se cambia ni se pone nueva.</div>');
-    h+='<div class="etq t">Cambiar LGA '+sw(r.lga,i,'lga')+'</div>'+(r.lga?'<div class="grupo">'+celdaSeg('Material',['Cobre','Aluminio'],r.lgaMat,i,'lgaMat')+celdaSel('Sección (mm²)',['16','25','35','50','70','95','120','150','185','240'],r.lgaSec,i,'lgaSec')+celdaNum('Metros',r.lgaM,i,'lgaM','m')+'<div class="celda"><div class="t">Terminales del seccionador<small>4 (3 fases + neutro), de '+esc(r.lgaSec)+' mm²'+(r.lgaMat==='Aluminio'?', bimetálicos':'')+'</small></div><span class="v">automático</span></div></div>':'');
-    h+='<div class="etq t">Contadores</div><div class="grupo">'+celdaStep('Monofásicos',r.mono,`tSet2(${i},'mono',`)+celdaStep('Trifásicos',r.tri,`tSet2(${i},'tri',`)+celdaSeg('Ubicación',['Armario','Local'],r.ubic,i,'ubic')+celdaSw('Hay que reubicarlos',r.reub,i,'reub')+'</div>';
-    h+='<div class="etq t">DI a cambiar '+sw(r.di,i,'di')+'</div>'+(r.di?'<div class="grupo">'+r.dis.map((d,j)=>'<div class="celda tap chev" onclick="hojaDi('+i+','+j+')"><div class="t">'+esc(d.piso||'Sin indicar')+'<small>'+esc(d.sec)+' mm² · '+esc(d.m||0)+' m</small></div></div>').join('')+'<div class="celda tap" onclick="hojaDi('+i+',-1)"><div class="t azul">＋ Añadir DI</div></div></div><div class="nota">Mínimo 6 mm² (REBT).</div>':'');return h},
-  lineas(t){const r=t.resp,L=[];const al=r.lgaMat==='Aluminio';
-    if(r.cgp)L.push({clave:'cgp',txt:'CGP esquema '+r.esq+' '+r.int+' A',q:1,req:[/cgp|caja general/,new RegExp('(^|\\D)'+r.int+'(\\D|$)')],pref:[new RegExp('(esq\\w*\\.?\\s*|cgp[- ]?)'+r.esq+'(\\D|$)')]});
+  nuevo:()=>({cgp:true,esq:'9',int:'160',acoMat:'Aluminio',acoSec:'50',lga:false,lgaMat:'Cobre',lgaSec:'50',lgaM:'',mono:0,tri:0,armario:'',termSec:'6',tacos:6,tierra:'',sistema:'',di:false,dis:[]}),
+  preguntas(t,i){const r=t.resp,arm=r.armario?db.materiales.find(x=>x.id===r.armario):null,bi=m=>m==='Aluminio'?', bimetálicos':'';
+    let h='<div class="etq t">Caja general de protección '+sw(r.cgp,i,'cgp')+'</div>'+(r.cgp?'<div class="grupo">'+celdaSeg('Esquema',['7','9','10','11'],r.esq,i,'esq')+celdaSeg('Intensidad (A)',['100','160','250','400'],r.int,i,'int')+celdaSeg('Acometida',['Cobre','Aluminio'],r.acoMat,i,'acoMat')+celdaSel('Sección de la acometida (mm²)',SEC_GRANDES,r.acoSec,i,'acoSec')+'<div class="celda"><div class="t">Terminales de la CGP<small>4 de entrada de '+esc(r.acoSec)+' mm²'+bi(r.acoMat)+' + 4 de salida de '+esc(r.lgaSec)+' mm²'+bi(r.lgaMat)+'</small></div><span class="v">automático</span></div></div>':'');
+    h+='<div class="etq t">LGA</div><div class="grupo">'+celdaSeg('Material',['Cobre','Aluminio'],r.lgaMat,i,'lgaMat')+celdaSel('Sección (mm²)',SEC_GRANDES,r.lgaSec,i,'lgaSec')+celdaSw('Se cambia el cable',r.lga,i,'lga')+(r.lga?celdaNum('Metros',r.lgaM,i,'lgaM','m')+'<div class="celda"><div class="t">Terminales del seccionador<small>4 de '+esc(r.lgaSec)+' mm²'+bi(r.lgaMat)+'</small></div><span class="v">automático</span></div>':'')+'</div>';
+    h+='<div class="etq t">Contadores</div><div class="grupo">'+celdaStep('Monofásicos',r.mono,`tSet2(${i},'mono',`)+celdaStep('Trifásicos',r.tri,`tSet2(${i},'tri',`)+
+      '<div class="celda tap chev" onclick="hojaFijo(\'armario\',\'Armario de contadores\',/armario|centraliz|contador/)"><div class="t">'+(arm?esc(arm.nombre)+'<small>'+money(arm.precio)+'</small>':'<span class="azul">🔍 Buscar</span><small>Armario de contadores</small>')+'</div></div>'+
+      '<div class="celda" style="flex-wrap:wrap"><div class="t" style="min-width:120px">Terminales (mm²)<small>'+nTermCont(r)+' en total</small></div><div class="seg">'+['6','10','16'].map(o=>'<button type="button" class="'+(String(r.termSec)===o?'on':'')+'" onclick="tSet('+i+',\'termSec\',\''+o+'\',true)">'+o+'</button>').join('')+'</div></div>'+
+      celdaStep('Tacos y tornillos de 8 mm',r.tacos,`tSet2(${i},'tacos',`)+celdaSeg('Puesta a tierra',['Sí','No'],r.tierra,i,'tierra',true)+celdaSeg('Sistema',['V1 (230)','V2 (400)'],r.sistema,i,'sistema',true)+'</div>';
+    h+='<div class="etq t">DI a cambiar '+sw(r.di,i,'di')+'</div>'+(r.di?'<div class="grupo">'+r.dis.map((d,j)=>'<div class="celda tap chev" onclick="hojaDi('+i+','+j+')"><div class="t">'+esc(d.piso||'Sin indicar')+'<small>'+esc(d.sec)+' mm² · '+esc(d.m||0)+' m</small></div></div>').join('')+'<div class="celda tap" onclick="hojaDi('+i+',-1)"><div class="t azul">＋ Añadir DI</div></div></div>':'');return h},
+  lineas(t){const r=t.resp,L=[];const al=r.lgaMat==='Aluminio',alA=r.acoMat==='Aluminio';
+    const term=(clave,sec,alu,q,donde)=>({clave,txt:'Terminal '+(alu?'bimetálico ':'')+sec+' mm² ('+donde+')',q,req:[/terminal/,reSec(sec)],pref:alu?[/bimet/]:[]});
+    if(r.cgp){L.push({clave:'cgp',txt:'CGP esquema '+r.esq+' '+r.int+' A',q:1,req:[/cgp|caja general/,new RegExp('(^|\\D)'+r.int+'(\\D|$)')],pref:[new RegExp('(esq\\w*\\.?\\s*|cgp[- ]?)'+r.esq+'(\\D|$)')]});
+      L.push(term('tcgpe',r.acoSec,alA,4,'entrada de la CGP'));L.push(term('tcgps',r.lgaSec,al,4,'salida de la CGP'))}
     if(r.lga&&num(r.lgaM)>0)L.push({clave:'lga',txt:'Cable LGA '+(al?'aluminio':'cobre')+' '+r.lgaSec+' mm²',q:num(r.lgaM),unidad:'m',req:[/cable|conductor|lga/,reSec(r.lgaSec)],pref:[al?/alumin|\bal\b|xz1/:/rz1|cobre|\bcu\b/]});
-    if(r.lga)L.push({clave:'term',txt:'Terminal '+(al?'bimetálico ':'')+r.lgaSec+' mm²',q:4,req:[/terminal/,reSec(r.lgaSec)],pref:al?[/bimet/]:[]});
-    if(r.mono>0)L.push({clave:'cmono',txt:'Módulo de contador monofásico',q:r.mono,req:[/modulo|contador/,RE_MONO]});
-    if(r.tri>0)L.push({clave:'ctri',txt:'Módulo de contador trifásico',q:r.tri,req:[/modulo|contador/,RE_TRI]});
-    if(r.mono+r.tri>2){const a=num(r.int)>=250?250:160;L.push({clave:'igm',txt:'Interruptor general de maniobra '+a+' A',q:1,req:[/interruptor general|maniobra|seccionador/,new RegExp('(^|\\D)'+a+'(\\D|$)')]})}
+    if(r.lga)L.push(term('term',r.lgaSec,al,4,'seccionador'));
+    const arm=r.armario?db.materiales.find(x=>x.id===r.armario):null;
+    if(arm)L.push({clave:'armario',txt:arm.nombre,q:1,fijo:arm});else if(num(r.mono)+num(r.tri)>0)L.push({clave:'armario',txt:'Armario de contadores',q:1});
+    if(nTermCont(r)>0)L.push({clave:'tcont',txt:'Terminal '+r.termSec+' mm² (contadores y DI)',q:nTermCont(r),req:[/terminal|puntera/,reSec(r.termSec)]});
+    if(num(r.tacos)>0){L.push({clave:'taco',txt:'Taco 8 mm',q:num(r.tacos),req:[/taco/,reNum(8)]});L.push({clave:'tornillo',txt:'Tornillo 8 mm',q:num(r.tacos),req:[/tornillo|tirafondo/,reNum(8)]})}
     if(r.di){const por={};r.dis.forEach(d=>{const s=String(Math.max(6,num(d.sec)||6));por[s]=(por[s]||0)+num(d.m)});Object.keys(por).forEach(s=>{if(por[s]>0)L.push({clave:'di:'+s,txt:'Cable DI '+s+' mm²',q:por[s],unidad:'m',req:[/cable|conductor/,reSec(s)],pref:[/es07z1|rz1/]})})}
     return L},
-  resumen(t){const r=t.resp,p=[];if(r.cgp)p.push('CGP esquema '+r.esq+' de '+r.int+' A');if(r.lga)p.push('LGA '+(r.lgaMat==='Aluminio'?'de aluminio':'de cobre')+' '+r.lgaSec+' mm²');if(r.mono||r.tri)p.push((r.mono+r.tri)+' contadores en '+r.ubic.toLowerCase()+(r.reub?' (reubicación)':''));if(r.di&&r.dis.length)p.push(r.dis.length+' DI');return p.join(', ')}};
+  resumen(t){const r=t.resp,p=[],n=num(r.mono)+num(r.tri);if(r.cgp)p.push('CGP esquema '+r.esq+' de '+r.int+' A');if(r.lga)p.push('LGA '+(r.lgaMat==='Aluminio'?'de aluminio':'de cobre')+' '+r.lgaSec+' mm²');if(n)p.push('armario para '+n+' contador'+(n>1?'es':'')+' ('+[num(r.mono)?num(r.mono)+' monofásico'+(num(r.mono)>1?'s':''):'',num(r.tri)?num(r.tri)+' trifásico'+(num(r.tri)>1?'s':''):''].filter(Boolean).join(' y ')+')');if(r.di&&r.dis.length)p.push(r.dis.length+' DI');return p.join(', ')},
+  /* datos solo para la oficina (no salen en el PDF del cliente) */
+  infoOficina(t){const r=t.resp;return ['LGA '+(r.lgaMat==='Aluminio'?'aluminio':'cobre')+' '+r.lgaSec+' mm²',r.tierra?'Puesta a tierra: '+r.tierra:'',r.sistema?'Sistema: '+r.sistema:''].filter(Boolean).join(' · ')}};
 /* ---------- CARGADOR ---------- */
 TPL.cargador={t:'Cargador de coche',corto:'Cargador',ico:'⚡︎',color:'#34c759',
-  nuevo:()=>({cargador:'',tipo:'Mono',cable:'RZ1-K',sec:'6',metros:'',boletin:false,boletinImp:'',garaje:false}),
+  nuevo:()=>({cargador:'',tipo:'Mono',sec:'6',metros:'',boletin:false,boletinImp:'',garaje:false}),
   preguntas(t,i){const r=t.resp,m=r.cargador?db.materiales.find(x=>x.id===r.cargador):null;
-    let h='<div class="etq t">Cargador</div><div class="grupo"><div class="celda tap chev" onclick="hojaCargador('+i+')"><div class="t">'+(m?esc(m.nombre)+'<small>'+money(m.precio)+'</small>':'<span class="azul">🔍 Buscar el cargador en mis materiales</span>')+'</div></div>'+celdaSeg('Tipo de instalación',['Mono','Tri'],r.tipo,i,'tipo')+'</div>';
-    h+='<div class="etq t">Línea</div><div class="grupo">'+celdaSeg('Tipo de cable',['RZ1-K','H07Z1-K','ES07Z1-K'],r.cable,i,'cable')+celdaSeg('Sección (mm²)',['2,5','4','6','10','16'],r.sec,i,'sec')+celdaNum('Metros',r.metros,i,'metros','m')+'</div>';
+    let h='<div class="etq t">Cargador</div><div class="grupo"><div class="celda tap chev" onclick="hojaFijo(\'cargador\',\'Cargador\',/cargador|wallbox|recarga|carga ve|punto de carga/)"><div class="t">'+(m?esc(m.nombre)+'<small>'+money(m.precio)+'</small>':'<span class="azul">🔍 Buscar</span><small>Cargador</small>')+'</div></div>'+celdaSeg('Tipo de instalación',['Mono','Tri'],r.tipo,i,'tipo')+'</div>';
+    h+='<div class="etq t">Línea</div><div class="grupo">'+celdaSeg('Sección (mm²)',['6','10','16'],r.sec,i,'sec')+celdaNum('Metros',r.metros,i,'metros','m')+'</div>';
     h+='<div class="etq t">Boletín / legalización '+sw(r.boletin,i,'boletin')+'</div>'+(r.boletin?'<div class="grupo">'+celdaNum('Importe (€)',r.boletinImp,i,'boletinImp','€')+'</div>':'');
-    h+='<div class="etq t">Garaje comunitario '+sw(r.garaje,i,'garaje')+'</div>'+(r.garaje?'<div class="nota">En el presupuesto saldrá: el permiso ante el administrador lo gestiona el cliente.</div>':'');return h},
+    h+='<div class="etq t">Garaje comunitario '+sw(r.garaje,i,'garaje')+'</div>';return h},
   lineas(t){const r=t.resp,L=[],tri=r.tipo==='Tri';
     if(r.cargador){const m=db.materiales.find(x=>x.id===r.cargador);if(m)L.push({clave:'cargador',txt:m.nombre,q:1,fijo:m})}
-    if(num(r.metros)>0)L.push({clave:'cable',txt:'Cable '+r.cable+' '+r.sec+' mm²',q:num(r.metros),unidad:'m',req:[/cable|conductor/,reSec(r.sec)],pref:[RE_CABLE[r.cable]]});
+    if(num(r.metros)>0)L.push({clave:'cable',txt:'Cable '+r.sec+' mm²',q:num(r.metros),unidad:'m',req:[/cable|conductor/,reSec(r.sec)]});
     L.push({clave:'mt',txt:'Magnetotérmico '+(tri?'4P':'1P+N')+' (protección del cargador)',q:1,req:[/magneto/,tri?RE_TRI:RE_MONO]});
     L.push({clave:'dif',txt:'Diferencial '+(tri?'4P':'2P')+' (protección del cargador)',q:1,req:[/diferen/,tri?RE_TRI:RE_MONO]});
     if(r.boletin)L.push({clave:'boletin',txt:'Legalización y boletín',q:1,fijo:{id:'',codigo:'',nombre:'Legalización y boletín',precio:num(r.boletinImp),unidad:'ud'}});
@@ -186,15 +198,8 @@ TPL.cargador={t:'Cargador de coche',corto:'Cargador',ico:'⚡︎',color:'#34c759
   notaPdf(t){return t.resp.garaje?'Garaje comunitario: el permiso ante el administrador lo gestiona el cliente.':''}};
 /* ---------- LIBRE ---------- */
 TPL.libre={t:'Libre',corto:'Libre',ico:'✎',color:'#8e8e93',nuevo:()=>({}),preguntas:()=>'',lineas:()=>[],resumen:()=>'',libre:true};
-/* ---------- SOLAR (la misma de gestión) ---------- */
-TPL.solar={t:'Solar',corto:'Solar',ico:'☀︎',color:'#ff9500',nuevo:()=>pvNuevo(),solar:true,
-  preguntas(t,i){window._pv=t.resp;window._pvI=i;return solarPreguntas()},
-  lineas(t){window._pv=t.resp;const r=pvCalc(),L=[];r.L.forEach((x,j)=>{if(x.falta)L.push({clave:'s'+j,txt:x.nombre,q:x.q,falta:'Carga en Materiales uno con la categoría «'+x.nombre+'»'});else L.push({clave:'s'+j,txt:x.m.nombre,q:x.q,fijo:x.m})});
-    t.resp.varios.forEach((x,j)=>L.push({clave:'v'+j,txt:x.nombre,q:x.q,fijo:{id:x.materialId,codigo:'',nombre:x.nombre,precio:x.precio,unidad:'ud'},revisar:!x.materialId}));
-    if(t.resp.leg==='si'&&pvN(t.resp.legImp)>0)L.push({clave:'leg',txt:'Legalización y boletín',q:1,fijo:{id:'',codigo:'',nombre:'Legalización y boletín',precio:pvN(t.resp.legImp),unidad:'ud'}});return L},
-  manoObra(t){return pvN(t.resp.mo)},
-  faltan(t){window._pv=t.resp;return pvCalc().faltan},
-  resumen(t){window._pv=t.resp;const s=t.resp,p=pvElegido('panel'),inv=pvElegido('inv'),bat=pvElegido('bat'),car=pvElegido('car');const pre=(w,m)=>m?(sinAcentos(m.nombre).startsWith(w)?m.nombre:w+' '+m.nombre):'';return [pvN(s.paneles)?pvN(s.paneles)+' paneles'+(p?' ('+p.nombre+')':''):'',s.fase==='no'?'sin inversor':pre('inversor',inv),pre('bateria',bat),pre('cargador',car)].filter(Boolean).join(', ')}};
+/* ---------- SOLAR: en proceso (v3: se quitó el asistente; no se puede activar) ---------- */
+TPL.solar={t:'Solar',corto:'Solar',ico:'☀︎',color:'#ff9500',nuevo:()=>({}),enProceso:true,preguntas:()=>'',lineas:()=>[],resumen:()=>''};
 /* ---------- materiales y totales de un trabajo ---------- */
 function lineasT(tipo,t){return TPL[tipo].lineas(t).map(l=>{let m=null,mano=null;const e=t.elegidos[l.clave];
   if(l.fijo)m=l.fijo;else if(e&&e.mano)mano=e;else if(e&&e.id)m=db.materiales.find(x=>x.id===e.id)||null;else if(l.req&&!l.falta)m=buscarAuto(l.req,l.pref);
@@ -203,114 +208,21 @@ function totalesT(tipo,t){const L=lineasT(tipo,t);let mat=round2(L.reduce((a,x)=
   let mo=TPL[tipo].manoObra?TPL[tipo].manoObra(t):num(t.mo);const calc=round2(mat+mo);let sub=calc;
   if(TPL[tipo].libre&&String(t.totalManual).trim()!==''){sub=round2(num(t.totalManual));mo=round2(mo+(sub-calc))}
   return {L,mat,mo:round2(mo),sub,calc,pend:L.filter(x=>x.pendiente).length,rev:L.filter(x=>x.revisar).length+t.extra.filter(x=>x.revisar).length}}
-function totalesP(p){const tr=ORDEN.filter(k=>p.trabajos[k]&&p.trabajos[k].on).map(k=>({tipo:k,...totalesT(k,p.trabajos[k])}));const base=round2(tr.reduce((a,x)=>a+x.sub,0));const pct=num(p.iva);const iva=round2(base*pct/100);return {tr,base,pct,iva,total:round2(base+iva),pend:tr.reduce((a,x)=>a+x.pend,0),rev:tr.reduce((a,x)=>a+x.rev,0)}}
-
-/* ---------- asistente solar (el mismo de gestión, adaptado) ---------- */
-function pvN(v){return Math.max(0,Number(String(v??'').replace(',','.'))||0)}
-function pvNuevo(){return {paneles:'',fase:'tri',strings:'',mSolar:'',mAC:'',bat:'no',car:'no',carM:'',carTubos:'',carCurvas:'',tubos:'',curvasTubo:'',mCan:'',canCurvas:'',canT:'',canTapas:'',clampF:'',clampI:'',quimico:'3',leg:'si',legImp:'',mo:'',varios:[],sel:{},q:{},todos:{}}}
-function pvS(){return window._pv||(window._pv=pvNuevo())}
-const PV_SEL={
-  panel:{t:'Panel',cat:()=>'Panel',req:s=>pvN(s.paneles)>0,donde:'punto 2'},
-  inv:{t:'Inversor',cat:s=>s.fase==='tri'?'Inversor trifásico':'Inversor monofásico',vis:s=>s.fase!=='no',req:s=>s.fase!=='no',donde:'punto 3'},
-  ita:{t:'ITA / seccionador por falta de energía',cat:s=>s.fase==='tri'?'ITA / conmutación trifásico':s.fase==='mono'?'ITA / conmutación monofásico':'ITA / conmutación*',noLleva:true,req:s=>s.fase!=='no',donde:'punto 3 (o marca «No lleva»)'},
-  solar:{t:'Cable solar',cat:()=>'Cable solar',req:s=>pvN(s.mSolar)>0,donde:'punto 4'},
-  ac:{t:'Cable de alterna',cat:()=>'Cable alterna',req:s=>pvN(s.mAC)>0,donde:'punto 4'},
-  bat:{t:'Batería',cat:()=>'Batería',vis:s=>s.bat==='si',req:s=>s.bat==='si',donde:'punto 5'},
-  car:{t:'Cargador',cat:s=>s.car==='tri'?'Cargador trifásico':'Cargador monofásico',vis:s=>s.car!=='no',req:s=>s.car!=='no',donde:'punto 6'},
-  carCable:{t:'Cable del cargador',cat:()=>'Cable alterna',vis:s=>s.car!=='no',req:s=>s.car!=='no'&&pvN(s.carM)>0,donde:'punto 6'}
-};
-function pvCatOk(m,c){if(c==='*')return true;if(c.endsWith('*'))return String(m.categoria||'').startsWith(c.slice(0,-1));return (m.categoria||'')===c}
-function pvCatTxt(c){return c.endsWith('*')&&c!=='*'?c.slice(0,-1)+' (trifásico y monofásico)':c}
-function pvOpciones(id){const s=pvS(),c=PV_SEL[id].cat(s);return db.materiales.filter(m=>s.todos[id]||pvCatOk(m,c)).sort((a,b)=>(Number(a.precio)||0)-(Number(b.precio)||0))}
-function pvMasBarato(cat){return db.materiales.filter(m=>(m.categoria||'')===cat).sort((a,b)=>(Number(a.precio)||0)-(Number(b.precio)||0))[0]||null}
-function pvVisible(id){const d=PV_SEL[id];return d.vis?d.vis(pvS()):true}
-function pvReq(id){const d=PV_SEL[id];return pvVisible(id)&&!!(d.req&&d.req(pvS()))}
-function pvElegido(id){const s=pvS(),v=s.sel[id];if(!v||v==='no'||!pvVisible(id))return null;return db.materiales.find(m=>m.id===v)||null}
-function pvValidar(){const s=pvS();Object.keys(PV_SEL).forEach(id=>{const v=s.sel[id];if(!v)return;if(v==='no'){if(!PV_SEL[id].noLleva)delete s.sel[id];return}if(!pvOpciones(id).some(m=>m.id===v))delete s.sel[id]})}
-function pvSelHtml(id){
-  const s=pvS(),d=PV_SEL[id];if(!pvVisible(id))return '';
-  const cat=d.cat(s),propias=cat==='*'?[]:db.materiales.filter(m=>pvCatOk(m,cat)).sort((a,b)=>(Number(a.precio)||0)-(Number(b.precio)||0));
-  const min=propias.length?Number(propias[0].precio)||0:null;const barato=m=>min!=null&&pvCatOk(m,cat)&&(Number(m.precio)||0)===min;
-  const x=pvElegido(id),v=s.sel[id],q=String(s.q[id]||'').trim().toLowerCase(),falta=pvReq(id)&&!v;
-  let actual;
-  if(v==='no')actual=`<span class="pv-grow"><b>No lleva</b></span>`;
-  else if(x)actual=`<span class="pv-grow"><b>${esc(x.codigo||'')} — ${esc(x.nombre)}</b>${barato(x)?' <span class="pv-tag ok">más barato</span>':''}</span><b>${money(x.precio)}</b>`;
-  else actual=falta?`<span class="pv-grow pv-falta">⚠️ Sin elegir: búscalo abajo</span>`:`<span class="pv-grow smallnote">Ningún material elegido</span>`;
-  let h=`<div class="pv-sel"><div class="pv-sel-t"><b>${esc(d.t)}</b>${cat!=='*'?`<span class="smallnote">Categoría: ${esc(pvCatTxt(cat))}</span>`:''}</div><div class="pv-opt on${falta?' pv-roja':''}">${actual}</div>`;
-  if(d.noLleva)h+=`<div style="margin-top:6px"><button type="button" class="btn small" onclick="pvElegir('${id}','${v==='no'?'':'no'}')">${v==='no'?'Sí lleva':'No lleva'}</button></div>`;
-  h+=`<input class="search" style="width:100%;margin-top:8px" data-pvq="${id}" placeholder="🔍 Escribe 2 letras para buscar (marca, modelo, medida…)" value="${esc(s.q[id]||'')}" autocomplete="off" oninput="pvBuscar('${id}',this)">`;
-  if(q.length>=2){const L=pvOpciones(id).filter(m=>(String(m.nombre||'')+' '+String(m.codigo||'')).toLowerCase().includes(q)).slice(0,8);
-    h+=`<div class="pv-drop">${L.map(m=>`<div class="pv-opt" onclick="pvElegir('${id}','${esc(m.id)}')"><span class="pv-grow">${esc(m.codigo||'')} — ${esc(m.nombre)}${barato(m)?' <span class="pv-tag ok">más barato</span>':''}${cat!=='*'&&!pvCatOk(m,cat)?` <span class="pv-tag">${esc(m.categoria||'sin categoría')}</span>`:''}</span><b>${money(m.precio)}</b></div>`).join('')||`<div class="smallnote" style="padding:8px">No hay materiales con «${esc(s.q[id])}»${cat!=='*'&&!s.todos[id]?'. Prueba marcando «buscar en todos los materiales».':'.'}</div>`}</div>`}
-  if(cat!=='*')h+=`<label class="pv-todos"><input type="checkbox" ${s.todos[id]?'checked':''} onchange="pvTodos('${id}',this.checked)"> Buscar en todos los materiales (no solo «${esc(pvCatTxt(cat))}»)</label>`;
-  return h+'</div>';
-}
-function pvBuscar(id,el){pvS().q[id]=el.value;const pos=el.selectionStart;const b=document.getElementById('pvs_'+id);if(b)b.innerHTML=pvSelHtml(id);const n=document.querySelector('[data-pvq="'+id+'"]');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}}
-function pvElegir(id,v){const s=pvS();if(v)s.sel[id]=v;else delete s.sel[id];s.q[id]='';pvRefrescar()}
-function pvTodos(id,on){pvS().todos[id]=on;pvValidar();pvRefrescar()}
-function pvSet(k,v){pvS()[k]=v;refrescarTrabajo()}
-function pvSeg(k,v){pvS()[k]=v;pvValidar();pintar()}
-function pvCalc(){
-  const s=pvS(),L=[],faltaAuto=[];let sec='';const S=t=>{sec=t};
-  const auto=(cat,q,why)=>{q=Math.round(q*1000)/1000;if(!(q>0))return;const m=pvMasBarato(cat);if(!m){faltaAuto.push(cat);L.push({sec,falta:true,nombre:cat,q,why});return}L.push({sec,m,q,why})};
-  const pick=(id,q,why)=>{const m=pvElegido(id);if(m&&q>0)L.push({sec,m,q,why})};
-  const pan=pvN(s.paneles),str=pvN(s.strings),tri=s.fase==='tri',sinInv=s.fase==='no';
-  S('Paneles y estructura');
-  pick('panel',pan,'1 por panel');auto('Perfil de estructura',pan,'1 por panel');auto('Varilla roscada M8',pan,'1 m por perfil');auto('Taco de anclaje químico',pan*4,'4 por perfil');auto('Tuerca M8',pan*12,'12 por perfil');auto('Arandela M8',pan*12,'12 por perfil');
-  auto('Clamp final',pvN(s.clampF),'respuesta');auto('Clamp intermedio',pvN(s.clampI),'respuesta');auto('Taco químico (bote)',pvN(s.quimico),'respuesta');
-  S('Inversor, conmutación y cuadros');
-  let cuadros=0;
-  pick('ita',1,'elegido');
-  if(!sinInv){pick('inv',1,'elegido');if(tri){auto('Cuadro 12 bocas',1,'cuadro de alterna');auto('Cuadro 8 bocas',1,'cuadro de continua');cuadros+=2}else{auto('Cuadro 12 bocas',1,'un solo cuadro (monofásica)');cuadros+=1}
-    auto('Portafusible',str*2,'2 por string');auto('Fusible solar',str,'1 por string');auto('Cartucho de neutro',str,'1 por string');
-    auto(tri?'Magnetotérmico tetrapolar':'Magnetotérmico bipolar',2,'protecciones');auto(tri?'Diferencial tetrapolar':'Diferencial bipolar',1,'protecciones');}
-  if(!sinInv||pan>0)auto('Puntera 6 mm',50,'fijo');
-  S('Cables y canalización');
-  pick('solar',pvN(s.mSolar),'metros');pick('ac',pvN(s.mAC),'metros');
-  const tubos=pvN(s.tubos),mc=pvN(s.mCan);let grapas=tubos*6;
-  auto('Tubo 32 mm',tubos,'respuesta');auto('Curva corrugada 32 mm',pvN(s.curvasTubo),'respuesta');
-  auto('Canaleta (tramo 2 m)',Math.ceil(mc/2),mc+' m en tramos de 2 m');auto('Curva de canaleta',pvN(s.canCurvas),'respuesta');auto('T de canaleta',pvN(s.canT),'respuesta');auto('Tapa final de canaleta',pvN(s.canTapas),'respuesta');
-  if(s.bat==='si'){S('Batería');pick('bat',1,'elegida')}
-  if(s.car!=='no'){S('Cargador de coche');const ct=s.car==='tri';pick('car',1,'elegido');pick('carCable',pvN(s.carM),'metros');auto('Tubo 32 mm',pvN(s.carTubos),'respuesta');auto('Curva corrugada 32 mm',pvN(s.carCurvas),'respuesta');grapas+=pvN(s.carTubos)*6;
-    auto(ct?'Magnetotérmico tetrapolar':'Magnetotérmico bipolar',1,'protección del cargador');auto(ct?'Diferencial tetrapolar':'Diferencial bipolar',1,'protección del cargador');auto(ct?'Cuadro 12 bocas':'Cuadro 8 bocas',1,ct?'12 bocas (trifásico)':'8 bocas (monofásico)');cuadros+=1}
-  S('Fijaciones');
-  auto('Grapa tubo 32 mm',grapas,'1 cada 50 cm (6 por tubo)');
-  auto('Taco y tornillo 6 mm',grapas+cuadros*4+mc*4,grapas+' grapas + '+cuadros+' cuadros × 4 + '+mc+' m de canaleta × 4');
-  auto('Taco y tornillo 8 mm',(sinInv?0:4)+(s.bat==='si'?8:0),[sinInv?'':'4 del inversor',s.bat==='si'?'8 de la batería':''].filter(Boolean).join(' + '));
-  const faltan=[];Object.keys(PV_SEL).forEach(id=>{if(pvReq(id)&&!s.sel[id])faltan.push(PV_SEL[id].t+' — '+PV_SEL[id].donde)});
-  return {L,faltaAuto:[...new Set(faltaAuto)],faltan,sinInv};
-}
-function pvRefrescar(){pvValidar();Object.keys(PV_SEL).forEach(id=>{const b=document.getElementById('pvs_'+id);if(b)b.innerHTML=pvSelHtml(id)});refrescarTrabajo()}
-function solarPreguntas(){const s=pvS();pvValidar();
-  const n=(k,l,ph)=>`<div class="celda"><div class="t">${l}</div><input class="campo num" inputmode="decimal" value="${esc(s[k])}" placeholder="${ph||'0'}" oninput="pvSet('${k}',this.value)"></div>`;
-  const seg=(k,ops)=>`<div class="celda"><div class="seg" style="flex:1">${ops.map(o=>`<button type="button" class="${s[k]===o[0]?'on':''}" onclick="pvSeg('${k}','${o[0]}')">${o[1]}</button>`).join('')}</div></div>`;
-  const g=(t,body,nota)=>`<div class="etq t">${t}</div><div class="grupo">${body}</div>${nota?`<div class="nota">${nota}</div>`:''}`;
-  const sel=id=>`<div id="pvs_${id}">${pvSelHtml(id)}</div>`;
-  return g('Paneles',n('paneles','¿Cuántos paneles?')+sel('panel'),'Estructura coplanar de siempre: 1 perfil por panel y 1 m de varilla por perfil (4 trozos de 25 cm).')+
-   g('Tipo de instalación',seg('fase',[['tri','Trifásica'],['mono','Monofásica'],['no','Sin inversor']])+sel('inv')+sel('ita'),s.fase==='no'?'Sin inversor: no se suman inversor, cuadros ni protecciones. Si hace falta algo, añádelo en materiales.':'')+
-   g('Strings y cables',n('strings','Cantidad de strings')+sel('solar')+n('mSolar','Metros de cable solar')+sel('ac')+n('mAC','Metros de cable de alterna'))+
-   g('Batería',seg('bat',[['no','No lleva'],['si','Sí lleva']])+sel('bat'))+
-   g('Cargador de coche',seg('car',[['no','No lleva'],['tri','Trifásico'],['mono','Monofásico']])+(s.car!=='no'?sel('car')+sel('carCable')+n('carM','Metros de cable')+n('carTubos','Tubos (3 m)')+n('carCurvas','Curvas'):''))+
-   g('Canalización',n('tubos','Tubos de 32 mm (3 m)')+n('curvasTubo','Curvas corrugadas 32 mm')+n('mCan','Metros de canaleta')+n('canCurvas','Curvas de canaleta')+n('canT','T de canaleta')+n('canTapas','Tapas finales'),'Las grapas (1 cada 50 cm) y los tacos y tornillos se calculan solos.')+
-   g('Estructura',n('clampF','Clamps finales')+n('clampI','Clamps intermedios')+n('quimico','Botes de taco químico'))+
-   g('Legalización',seg('leg',[['si','Con legalización y boletín'],['no','Sin legalización']])+(s.leg==='si'?n('legImp','Importe (€)','Escríbelo'):''))+
-   g('Mano de obra',n('mo','Importe de la obra (€)','Escríbelo'))}
-
-['pvSet','pvElegir','pvTodos'].forEach(n=>{const f=window[n];window[n]=function(...a){f(...a);tocar()}});
-pvSeg=function(k,v){pvS()[k]=v;pvValidar();tocar();pintar()};
+function totalesP(p){const tr=ORDEN.filter(k=>p.trabajos[k]&&p.trabajos[k].on&&!TPL[k].enProceso).map(k=>({tipo:k,...totalesT(k,p.trabajos[k])}));const base=round2(tr.reduce((a,x)=>a+x.sub,0));const pct=num(p.iva);const iva=round2(base*pct/100);return {tr,base,pct,iva,total:round2(base+iva),pend:tr.reduce((a,x)=>a+x.pend,0),rev:tr.reduce((a,x)=>a+x.rev,0)}}
 
 /* ===== PANTALLAS ===== */
 const V={vista:cfg.url?'inicio':'conectar',p:null,paso:0,pdf:null};
 function nuevoP(){const p={id:generarId(),creado:new Date().toISOString(),modificado:'',fecha:hoyLocal(),hechoPor:'',cliente:{id:'',nombre:'',tel:'',dir:'',gps:null},trabajos:{},desc:'',iva:ivaDefecto(),fotos:[],estado:'sinEnviar',enviadoEn:null,app:APP_PRES_VER};ORDEN.forEach(k=>p.trabajos[k]=nuevaT(k));return p}
-function pasos(p){return ['cliente','trabajos',...ORDEN.filter(k=>p.trabajos[k].on),'final','resumen']}
+function pasos(p){return ['cliente','trabajos',...ORDEN.filter(k=>p.trabajos[k].on&&!TPL[k].enProceso),'final','resumen']}
 function tocar(){if(V.p){V.p.modificado=new Date().toISOString();V.pdf=null;guardarP()}}
 function guardarP(){const p=V.p;if(!p)return;const tieneAlgo=p.cliente.id||p.cliente.nombre.trim();if(!tieneAlgo&&!datos.pres.some(x=>x.id===p.id))return;const TP=totalesP(p);p.totales={base:TP.base,iva:TP.pct,ivaImporte:TP.iva,total:TP.total};p.detalle=detalleP(p,TP);const i=datos.pres.findIndex(x=>x.id===p.id);if(i>=0)datos.pres[i]=p;else datos.pres.push(p);guardarDatos()}
 /* detalle ya calculado de cada trabajo (lo usa gestión para pasarlo a presupuesto) */
 function detalleP(p,TP){const r3=n=>Math.round((Number(n)||0)*1000)/1000;return TP.tr.map(x=>{const t=p.trabajos[x.tipo];return {tipo:x.tipo,titulo:TPL[x.tipo].t,resumen:TPL[x.tipo].resumen(t),
   items:[...x.L.filter(l=>!l.pendiente).map(l=>({materialId:(l.m&&l.m.id)||'',codigo:(l.m&&l.m.codigo)||'',nombre:l.nombre,cantidad:r3(l.q),precio:Number(l.precio)||0,unidad:l.unidad||(l.m&&l.m.unidad)||'ud',revisar:!!l.revisar})),...t.extra.map(e=>({materialId:e.materialId||'',codigo:e.codigo||'',nombre:e.nombre,cantidad:r3(num(e.cantidad)),precio:num(e.precio),unidad:e.unidad||'ud',revisar:!!e.revisar}))],
-  pendientes:x.L.filter(l=>l.pendiente).map(l=>({nombre:l.txt,cantidad:r3(l.q)})),mat:x.mat,mo:x.mo,sub:x.sub,nota:TPL[x.tipo].notaPdf?TPL[x.tipo].notaPdf(t):''}})}
+  pendientes:x.L.filter(l=>l.pendiente).map(l=>({nombre:l.txt,cantidad:r3(l.q)})),mat:x.mat,mo:x.mo,sub:x.sub,nota:TPL[x.tipo].notaPdf?TPL[x.tipo].notaPdf(t):'',moDesc:String(t.moDesc||'').trim(),obs:String(t.obs||'').trim(),info:TPL[x.tipo].infoOficina?TPL[x.tipo].infoOficina(t):''}})}
 function ir(n){const p=V.p,L=pasos(p),act=L[V.paso];
   if(n>V.paso){if(act==='cliente'&&!p.cliente.id&&!p.cliente.nombre.trim()){alert('Elige un cliente o escribe el nombre del cliente nuevo.');return}
-    if(act==='trabajos'&&!ORDEN.some(k=>p.trabajos[k].on)){alert('Activa al menos un trabajo.');return}
+    if(act==='trabajos'&&!ORDEN.some(k=>p.trabajos[k].on&&!TPL[k].enProceso)){alert('Activa al menos un trabajo.');return}
     if(TPL[act]&&TPL[act].faltan){const f=TPL[act].faltan(p.trabajos[act]);if(f.length&&!confirm('Falta elegir:\n• '+f.join('\n• ')+'\n\n¿Seguir igualmente?'))return}}
   V.paso=Math.max(0,Math.min(n,L.length-1));tocar();pintar();scrollTo(0,0)}
 function salir(){if(V.p){tocar()}V.p=null;V.vista='inicio';pintar();scrollTo(0,0)}
@@ -336,46 +248,54 @@ function vAjustes(){const b=B();return nav('‹ Volver',"V.vista='inicio';pintar
 /* --- inicio --- */
 function vInicio(){const L=datos.pres.slice().sort((a,b)=>String(b.modificado||b.creado).localeCompare(String(a.modificado||a.creado))).slice(0,30);
   return '<div class="nav"><span style="min-width:72px"></span><div class="med"></div><button type="button" class="der" onclick="V.vista=\'ajustes\';pintar()">Ajustes</button></div><div class="gran">Presupuestos</div><div class="cuerpo"><button type="button" class="boton" style="margin-top:2px" onclick="nuevo()">＋ Nuevo presupuesto</button>'+
-  '<div class="etq">Hechos últimamente</div><div class="grupo">'+(L.length?L.map(p=>{const tr=ORDEN.filter(k=>p.trabajos[k]&&p.trabajos[k].on).map(k=>TPL[k].corto).join(' + ');return '<div class="celda tap chev" onclick="abrir(\''+p.id+'\')"><div class="t">'+esc(nombreCliente(p)||'Sin cliente')+'<small>'+esc(tr||'—')+' · '+fechaTxt(p.fecha)+(p.totales?' · '+money(p.totales.total):'')+'</small></div>'+(p.estado==='enviado'?'<span class="chip ok">Enviado</span>':'<span class="chip av">Sin enviar</span>')+'</div>'}).join(''):'<div class="vacio">Todavía no hay presupuestos.</div>')+'</div>'+
+  '<div class="etq">Hechos últimamente</div><div class="grupo">'+(L.length?L.map(p=>{const tr=ORDEN.filter(k=>p.trabajos[k]&&p.trabajos[k].on&&!TPL[k].enProceso).map(k=>TPL[k].corto).join(' + ');return '<div class="celda tap chev" onclick="abrir(\''+p.id+'\')"><div class="t">'+esc(nombreCliente(p)||'Sin cliente')+'<small>'+esc(tr||'—')+' · '+fechaTxt(p.fecha)+(p.totales?' · '+money(p.totales.total):'')+'</small></div>'+(p.estado==='enviado'?'<span class="chip ok">Enviado</span>':'<span class="chip av">Sin enviar</span>')+'</div>'}).join(''):'<div class="vacio">Todavía no hay presupuestos.</div>')+'</div>'+
   '<div class="estado" id="estadoSync">'+esc(estadoSyncTxt())+'</div><div class="estado">Pasan solos a gestión.</div></div>'}
 function nombreCliente(p){const r=p.cliente.id?receptor(p.cliente.id):null;return r?r.nombre:p.cliente.nombre}
 function nuevo(){V.p=nuevoP();V.paso=0;V.pdf=null;V.vista='editar';pintar();scrollTo(0,0)}
-function abrir(id){const p=datos.pres.find(x=>x.id===id);if(!p)return;V.p=JSON.parse(JSON.stringify(p));ORDEN.forEach(k=>{if(!V.p.trabajos[k])V.p.trabajos[k]=nuevaT(k)});V.pdf=null;V.vista='editar';V.paso=pasos(V.p).length-1;pintar();scrollTo(0,0)}
+function abrir(id){const p=datos.pres.find(x=>x.id===id);if(!p)return;V.p=JSON.parse(JSON.stringify(p));ORDEN.forEach(k=>{if(!V.p.trabajos[k])V.p.trabajos[k]=nuevaT(k);const t=V.p.trabajos[k];if(TPL[k].enProceso){t.on=false;t.resp={}}else t.resp=Object.assign(TPL[k].nuevo(),t.resp);if(t.moDesc==null)t.moDesc='';if(t.obs==null)t.obs=''});V.pdf=null;V.vista='editar';V.paso=pasos(V.p).length-1;pintar();scrollTo(0,0)}
 /* --- 1 cliente --- */
 function vCliente(){const p=V.p,r=p.cliente.id?receptor(p.cliente.id):null;
   let h=nav('‹ Cancelar','salir()','Nuevo presupuesto','Seguir','ir(1)')+puntos()+'<div class="gran">Cliente</div><div class="cuerpo">';
   if(r)h+='<div class="grupo"><div class="celda"><div class="t">'+esc(r.nombre)+'<small>'+esc(r._sub||'')+'</small></div><button type="button" class="chip az" style="border:0;cursor:pointer" onclick="V.p.cliente.id=\'\';tocar();pintar()">Cambiar</button></div></div>';
-  else{h+='<div class="buscar">🔍<input placeholder="Buscar cliente, finca o administración" oninput="buscarCli(this.value)" autocomplete="off"></div><div class="etq">Coincidencias</div><div class="grupo" id="cliRes"><div class="vacio">Escribe al menos 2 letras.</div></div>';
-    h+='<div class="etq">O cliente nuevo</div><div class="grupo"><div class="celda"><input class="campo" placeholder="Nombre" value="'+esc(p.cliente.nombre)+'" oninput="V.p.cliente.nombre=this.value;tocar()"></div><div class="celda"><input class="campo" type="tel" placeholder="Teléfono" value="'+esc(p.cliente.tel)+'" oninput="V.p.cliente.tel=this.value;tocar()"></div><div class="celda"><input class="campo" id="cliDir" placeholder="Dirección de la obra" value="'+esc(p.cliente.dir)+'" oninput="V.p.cliente.dir=this.value;tocar()"><button type="button" class="chip az" style="border:0;cursor:pointer;font-size:14px" onclick="usarGps(this)">📍 GPS</button></div></div><div class="nota">La dirección se escribe o se rellena con el GPS. El resto se completa en oficina: el cliente nuevo no se da de alta solo en gestión.</div>'}
+  else{h+='<div class="buscar">🔍<input placeholder="Buscar" oninput="buscarCli(this.value)" autocomplete="off"></div><div class="etq">Coincidencias</div><div class="grupo" id="cliRes"><div class="vacio">Escribe al menos 2 letras.</div></div>';
+    h+='<div class="etq">O cliente nuevo</div><div class="grupo"><div class="celda"><input class="campo" placeholder="Nombre" value="'+esc(p.cliente.nombre)+'" oninput="V.p.cliente.nombre=this.value;tocar()"></div><div class="celda"><input class="campo" type="tel" placeholder="Teléfono" value="'+esc(p.cliente.tel)+'" oninput="V.p.cliente.tel=this.value;tocar()"></div><div class="celda"><input class="campo" id="cliDir" placeholder="Dirección de la obra" value="'+esc(p.cliente.dir)+'" oninput="V.p.cliente.dir=this.value;tocar()"><button type="button" class="chip az" style="border:0;cursor:pointer;font-size:14px" onclick="usarGps(this)">📍 GPS</button></div></div>'+(p.cliente.gps&&p.cliente.gps.prec?'<div class="nota">GPS: precisión ± '+Math.round(p.cliente.gps.prec)+' m</div>':'')}
   h+='<div class="etq">Hecho por</div><div class="grupo"><div class="celda"><input class="campo" placeholder="Nombre (opcional)" value="'+esc(p.hechoPor)+'" oninput="V.p.hechoPor=this.value;tocar()"></div></div></div>';return h}
 function buscarCli(q){const el=document.getElementById('cliRes');if(!el)return;const t=sinAcentos(q).trim();if(t.length<2){el.innerHTML='<div class="vacio">Escribe al menos 2 letras.</div>';return}
   const L=receptores().filter(x=>sinAcentos(x.nombre+' '+(x._sub||'')+' '+(x.nif||'')+' '+(x.tel||'')).includes(t)).slice(0,10);
   el.innerHTML=L.length?L.map(x=>'<div class="celda tap" onclick="elegirCli(\''+esc(x.id)+'\')"><div class="t">'+esc(x.nombre)+'<small>'+esc(x._sub||'')+'</small></div><span class="azul">Elegir</span></div>').join(''):'<div class="vacio">No hay coincidencias: créalo abajo como cliente nuevo.</div>'}
 function elegirCli(id){V.p.cliente={id,nombre:'',tel:'',dir:'',gps:null};tocar();pintar()}
-function usarGps(btn){if(!navigator.geolocation){alert('Este aparato no deja usar el GPS.');return}btn.textContent='Buscando…';
-  navigator.geolocation.getCurrentPosition(async pos=>{const lat=pos.coords.latitude,lng=pos.coords.longitude;V.p.cliente.gps={lat,lng};let dir='';
-    try{const r=await conTiempo(fetch('https://nominatim.openstreetmap.org/reverse?format=json&accept-language=es&lat='+lat+'&lon='+lng),8000,'');const j=await r.json();const a=j.address||{};dir=[[a.road,a.house_number].filter(Boolean).join(' '),a.postcode,a.town||a.city||a.village].filter(Boolean).join(', ')||j.display_name||''}catch(e){}
-    V.p.cliente.dir=dir||('GPS '+lat.toFixed(5)+', '+lng.toFixed(5));tocar();pintar()},
-   e=>{btn.textContent='📍 GPS';alert('No se pudo usar el GPS: '+(e.message||'permiso denegado'))},{enableHighAccuracy:true,timeout:15000})}
+/* v3: espera a que el GPS afine (hasta 10 s) y pide la dirección al servicio oficial de España (CartoCiudad); si no contesta, OpenStreetMap */
+function titulo(s){const men=['de','del','la','las','el','los','y','i','en','a'];return String(s||'').toLowerCase().split(/\s+/).filter(Boolean).map((w,j)=>j>0&&men.includes(w)?w:w.replace(/(^|[-'’/])([a-záéíóúüñç])/g,(m,a,b)=>a+b.toUpperCase())).join(' ').replace(/ ([DL])(['’])/g,(m,a,b)=>' '+a.toLowerCase()+b)}
+async function dirOficial(lat,lng){const r=await conTiempo(fetch('https://www.cartociudad.es/geocoder/api/geocoder/reverseGeocode?lon='+lng+'&lat='+lat),8000,'');if(!r.ok)return '';const j=await r.json();if(!j||!j.address)return '';
+  const calle=[titulo(j.tip_via),titulo(j.address),j.portalNumber&&!j.noNumber?j.portalNumber:''].filter(Boolean).join(' ');return [calle,[j.postalCode,j.poblacion||j.muni].filter(Boolean).join(' ')].filter(Boolean).join(', ')}
+async function dirOsm(lat,lng){const r=await conTiempo(fetch('https://nominatim.openstreetmap.org/reverse?format=json&zoom=18&addressdetails=1&accept-language=es&lat='+lat+'&lon='+lng),8000,'');const j=await r.json();const a=j.address||{};
+  return [[a.road||a.pedestrian,a.house_number].filter(Boolean).join(' '),[a.postcode,a.town||a.city||a.village||a.municipality].filter(Boolean).join(' ')].filter(Boolean).join(', ')||j.display_name||''}
+function gpsMejor(alAvanzar){return new Promise((ok,mal)=>{let mejor=null,id=null,fin=false;const acabar=()=>{if(fin)return;fin=true;clearTimeout(tope);try{navigator.geolocation.clearWatch(id)}catch(e){}if(mejor)ok(mejor);else mal(new Error('no hay señal de GPS'))};
+  const tope=setTimeout(acabar,10000);
+  id=navigator.geolocation.watchPosition(pos=>{const c=pos.coords;if(!mejor||c.accuracy<mejor.prec)mejor={lat:c.latitude,lng:c.longitude,prec:c.accuracy};if(alAvanzar)alAvanzar(mejor);if(mejor.prec<=10)acabar()},
+    e=>{if(mejor)acabar();else{fin=true;clearTimeout(tope);try{navigator.geolocation.clearWatch(id)}catch(x){}mal(e)}},{enableHighAccuracy:true,maximumAge:0,timeout:10000})})}
+async function usarGps(btn){if(!navigator.geolocation){alert('Este aparato no deja usar el GPS.');return}btn.disabled=true;btn.textContent='Buscando…';const p=V.p;
+  let g;try{g=await gpsMejor(m=>{btn.textContent='± '+Math.round(m.prec)+' m…'})}catch(e){btn.disabled=false;btn.textContent='📍 GPS';alert('No se pudo usar el GPS: '+(e.message||'permiso denegado'));return}
+  let dir='';try{dir=await dirOficial(g.lat,g.lng)}catch(e){}if(!dir){try{dir=await dirOsm(g.lat,g.lng)}catch(e){}}
+  if(V.p!==p)return;p.cliente.gps={lat:g.lat,lng:g.lng,prec:Math.round(g.prec)};p.cliente.dir=dir||('GPS '+g.lat.toFixed(5)+', '+g.lng.toFixed(5));tocar();pintar()}
 /* --- 2 trabajos --- */
-function vTrabajos(){const p=V.p;return nav('‹ Cliente','ir(0)',nombreCliente(p)||'Cliente','Seguir','ir(2)')+puntos()+'<div class="cuerpo"><div class="nota" style="margin:8px 4px 10px">Activa lo que lleva este presupuesto. Se pueden activar varios.</div><div class="grupo">'+
-  ORDEN.map(k=>'<div class="celda"><div class="ico" style="background:'+TPL[k].color+'">'+TPL[k].ico+'</div><div class="t">'+esc(TPL[k].t)+'</div><input type="checkbox" class="sw" '+(p.trabajos[k].on?'checked':'')+' onchange="V.p.trabajos[\''+k+'\'].on=this.checked;tocar()"></div>').join('')+'</div></div>'}
+function vTrabajos(){const p=V.p;return nav('‹ Cliente','ir(0)',nombreCliente(p)||'Cliente','Seguir','ir(2)')+puntos()+'<div class="cuerpo"><div class="grupo" style="margin-top:8px">'+
+  ORDEN.map(k=>'<div class="celda"><div class="ico" style="background:'+TPL[k].color+(TPL[k].enProceso?';opacity:.45':'')+'">'+TPL[k].ico+'</div><div class="t"'+(TPL[k].enProceso?' style="color:var(--sec)"':'')+'>'+esc(TPL[k].t)+'</div>'+(TPL[k].enProceso?'<span class="chip av">En proceso</span>':'<input type="checkbox" class="sw" '+(p.trabajos[k].on?'checked':'')+' onchange="V.p.trabajos[\''+k+'\'].on=this.checked;tocar()">')+'</div>').join('')+'</div></div>'}
 /* --- 3 cada trabajo --- */
 function vTrabajo(tipo){const p=V.p,t=p.trabajos[tipo],L=pasos(p),i=V.paso;const tp=TPL[tipo];
   let h=nav('‹ Atrás','ir('+(i-1)+')',tp.t.length>18?tp.corto:tp.t,'Seguir','ir('+(i+1)+')')+puntos()+'<div class="cuerpo">';
   h+=tp.preguntas(t,i);
   h+='<div class="etq t">Materiales de este trabajo</div><div id="matT">'+matTHtml(tipo,t)+'</div>';
-  if(!tp.solar)h+='<div class="etq t">Mano de obra</div><div class="grupo"><div class="celda"><div class="t">Importe</div><input class="campo num" inputmode="decimal" placeholder="0,00" value="'+esc(t.mo)+'" oninput="tAct().mo=this.value;refrescarTrabajo();tocar()" style="font-size:20px;font-weight:700"><span class="v">€</span></div></div><div class="nota">Es una estimación: se ajusta luego en la oficina.</div>';
+  h+='<div class="etq t">Mano de obra</div><div class="grupo"><div class="celda"><textarea class="campo corto" placeholder="Descripción" oninput="tAct().moDesc=this.value;tocar()">'+esc(t.moDesc||'')+'</textarea></div><div class="celda"><div class="t">Importe</div><input class="campo num" inputmode="decimal" placeholder="0,00" value="'+esc(t.mo)+'" oninput="tAct().mo=this.value;refrescarTrabajo();tocar()" style="font-size:20px;font-weight:700"><span class="v">€</span></div></div>';
+  h+='<div class="etq t">Observaciones</div><div class="grupo"><div class="celda"><textarea class="campo corto" placeholder="Observaciones" oninput="tAct().obs=this.value;tocar()">'+esc(t.obs||'')+'</textarea></div></div>';
   h+='<div id="subT">'+subTHtml(tipo,t)+'</div></div>';return h}
 function matTHtml(tipo,t){const T=totalesT(tipo,t);let h='<div class="grupo">';
-  if(TPL[tipo].solar)h+='';
-  else if(!T.L.length&&!t.extra.length)h+=TPL[tipo].libre?'':'<div class="vacio">Contesta las preguntas de arriba y aquí salen los materiales.</div>';
-  T.L.forEach(x=>{h+='<div class="celda'+(x.falta?'':' tap')+'"'+(x.falta||x.fijo?'':' onclick="hojaElegir(\''+x.clave+'\')"')+'><div class="t">'+(x.pendiente?'<span class="'+(x.falta?'rojo':'azul')+'">'+esc(x.txt)+'</span><small>'+(x.falta?esc(x.falta):'Toca para elegir el material de tu lista o ponerlo a mano')+'</small>':esc(x.nombre)+'<small>'+(+x.q.toFixed(3))+' '+esc(x.unidad||x.m?.unidad||'ud')+' × '+money(x.precio)+' = '+money(x.q*x.precio)+(x.revisar?' · <span style="color:var(--avisotxt)">revisar en oficina</span>':'')+'</small>')+'</div>'+(x.fijo||x.falta?'':'<span class="v">›</span>')+'</div>'});
+  T.L.forEach(x=>{h+='<div class="celda'+(x.falta?'':' tap')+'"'+(x.falta||x.fijo?'':' onclick="hojaElegir(\''+x.clave+'\')"')+'><div class="t">'+(x.pendiente?'<span class="'+(x.falta?'rojo':'azul')+'">'+esc(x.txt)+'</span><small>'+(x.falta?esc(x.falta):'Toca para elegir')+'</small>':esc(x.nombre)+'<small>'+(+x.q.toFixed(3))+' '+esc(x.unidad||x.m?.unidad||'ud')+' × '+money(x.precio)+' = '+money(x.q*x.precio)+(x.revisar?' · <span style="color:var(--avisotxt)">revisar en oficina</span>':'')+'</small>')+'</div>'+(x.fijo||x.falta?'':'<span class="v">›</span>')+'</div>'});
   t.extra.forEach((x,j)=>{h+='<div class="celda"><div class="t">'+esc(x.nombre)+'<small>'+money(x.precio)+(x.revisar?' (referencia) · <span style="color:var(--avisotxt)">revisar en oficina</span>':'')+'</small></div><div class="step"><button type="button" onclick="extraCant('+j+',-1)">−</button><input inputmode="decimal" value="'+esc(x.cantidad)+'" onchange="extraCant('+j+',this.value,true)"><button type="button" onclick="extraCant('+j+',1)">+</button></div></div>'});
-  h+='<div class="celda tap" onclick="hojaBuscarMat()"><div class="t azul">🔍 Añadir de mis materiales</div></div><div class="celda tap" onclick="hojaMano()"><div class="t azul">✎ Añadir a mano (con búsqueda de precio)</div></div></div>';
+  h+='<div class="celda tap" onclick="hojaBuscarMat()"><div class="t azul">🔍 Añadir de mis materiales</div></div><div class="celda tap" onclick="hojaMano()"><div class="t azul">✎ Añadir a mano</div></div></div>';
   if(T.pend)h+='<div class="aviso">'+T.pend+' material'+(T.pend>1?'es':'')+' sin elegir: no suman hasta que lo elijas.</div>';return h}
 function subTHtml(tipo,t){const T=totalesT(tipo,t);let h='<div class="grupo" style="margin-top:18px;padding:10px 16px"><div class="tot"><span>Materiales</span><b>'+money(T.mat)+'</b></div><div class="tot"><span>Mano de obra</span><b>'+money(T.mo)+'</b></div><div class="tot s"><span>Subtotal '+esc(TPL[tipo].corto.toLowerCase())+'</span><span>'+money(T.sub)+'</span></div></div>';
-  if(TPL[tipo].libre)h+='<div class="etq">Total de este trabajo</div><div class="grupo"><div class="celda"><div class="t">Calculado<small>materiales + mano de obra</small></div><span class="v">'+money(T.calc)+'</span></div><div class="celda"><div class="t">Total que quieres poner<small>opcional: la diferencia va a la mano de obra</small></div><input class="campo num" inputmode="decimal" placeholder="—" value="'+esc(t.totalManual)+'" onchange="tAct().totalManual=this.value;refrescarTrabajo();tocar()"></div></div>';return h}
+  if(TPL[tipo].libre)h+='<div class="etq">Total de este trabajo</div><div class="grupo"><div class="celda"><div class="t">Calculado</div><span class="v">'+money(T.calc)+'</span></div><div class="celda"><div class="t">Total que quieres poner</div><input class="campo num" inputmode="decimal" placeholder="—" value="'+esc(t.totalManual)+'" onchange="tAct().totalManual=this.value;refrescarTrabajo();tocar()"></div></div>';return h}
 function refrescarTrabajo(){const L=pasos(V.p),tipo=L[V.paso],t=V.p.trabajos[tipo];if(!t)return;const a=document.getElementById('matT');if(a)a.innerHTML=matTHtml(tipo,t);const b=document.getElementById('subT');if(b){const act=document.activeElement;if(!(act&&b.contains(act)))b.innerHTML=subTHtml(tipo,t)}}
 function extraCant(j,d,abs){const t=tAct(),x=t.extra[j];const n=abs?num(d):round2(num(x.cantidad)+d);if(!(n>0))t.extra.splice(j,1);else x.cantidad=round2(n);refrescarTrabajo();tocar()}
 /* --- 4 datos finales --- */
@@ -401,25 +321,26 @@ function marcarEnviado(){const pdf=V.pdf;V.p.estado='enviado';V.p.enviadoEn=new 
 /* --- hojas (ventanas desde abajo) --- */
 function hoja(html){cerrarHoja();const d=document.createElement('div');d.className='hoja';d.id='hoja';d.innerHTML='<div>'+html+'</div>';d.addEventListener('click',e=>{if(e.target===d)cerrarHoja()});document.body.appendChild(d)}
 function cerrarHoja(){const h=document.getElementById('hoja');if(h)h.remove()}
-function listaMat(q,filtro,accion){const t=sinAcentos(q).trim();if(t.length<2)return '<div class="vacio">Escribe al menos 2 letras (nombre, marca, medida, código…).</div>';
+function listaMat(q,filtro,accion){const t=sinAcentos(q).trim();if(t.length<2)return '<div class="vacio">Escribe al menos 2 letras.</div>';
   let L=db.materiales.filter(m=>texMat(m).includes(t)&&(!filtro||filtro(m))).sort((a,b)=>num(a.precio)-num(b.precio)).slice(0,8);const min=L.length?num(L[0].precio):null;
   return L.length?L.map((m,j)=>'<div class="celda tap" onclick="'+accion+'(\''+esc(m.id)+'\')"><div class="t">'+esc(m.nombre)+'<small>'+esc(m.codigo||'')+(j===0&&L.length>1?' · <span class="pv-tag ok">más barato</span>':'')+'</small></div><b>'+money(m.precio)+'</b></div>').join(''):'<div class="vacio">No está en tus materiales. Ponlo «a mano».</div>'}
-function hojaBuscarMat(){hoja(nav('Cerrar','cerrarHoja()','Añadir material')+'<div class="cuerpo"><div class="buscar">🔍<input id="hq" placeholder="Buscar en mis materiales" autocomplete="off" oninput="document.getElementById(\'hres\').innerHTML=listaMat(this.value,null,\'addExtra\')"></div><div class="grupo" style="margin-top:10px" id="hres"><div class="vacio">Escribe al menos 2 letras.</div></div></div>');setTimeout(()=>document.getElementById('hq')?.focus(),50)}
+function hojaBuscarMat(){hoja(nav('Cerrar','cerrarHoja()','Añadir material')+'<div class="cuerpo"><div class="buscar">🔍<input id="hq" placeholder="Buscar" autocomplete="off" oninput="document.getElementById(\'hres\').innerHTML=listaMat(this.value,null,\'addExtra\')"></div><div class="grupo" style="margin-top:10px" id="hres"><div class="vacio">Escribe al menos 2 letras.</div></div></div>');setTimeout(()=>document.getElementById('hq')?.focus(),50)}
 function addExtra(id){const m=db.materiales.find(x=>x.id===id),t=tAct();if(!m||!t)return;const ya=t.extra.find(x=>x.materialId===id);if(ya)ya.cantidad=round2(num(ya.cantidad)+1);else t.extra.push({materialId:m.id,codigo:m.codigo||'',nombre:m.nombre,precio:num(m.precio),cantidad:1,unidad:m.unidad||'ud'});cerrarHoja();refrescarTrabajo();tocar()}
-function hojaMano(clave){hoja(nav('Cerrar','cerrarHoja()','Material a mano','Añadir',"guardarMano('"+(clave||'')+"')")+'<div class="cuerpo"><div class="grupo"><div class="celda"><input id="mN" class="campo" placeholder="Qué es"></div>'+(clave?'':'<div class="celda"><div class="t">Cantidad</div><input id="mC" class="campo num" inputmode="decimal" value="1"></div>')+'<div class="celda"><div class="t">Precio aprox. (sin IVA)</div><input id="mP" class="campo num" inputmode="decimal" placeholder="0,00"><span class="v">€</span></div></div><button type="button" class="boton gris" onclick="buscarPrecioWeb()">🌐 Buscar precio en internet</button><div class="nota">Queda marcado «revisar en oficina»: en gestión se carga el material bueno con su distribuidor. No se añade a tu lista de materiales.</div></div>');setTimeout(()=>document.getElementById('mN')?.focus(),50)}
+function hojaMano(clave){hoja(nav('Cerrar','cerrarHoja()','Material a mano','Añadir',"guardarMano('"+(clave||'')+"')")+'<div class="cuerpo"><div class="grupo"><div class="celda"><input id="mN" class="campo" placeholder="Qué es"></div>'+(clave?'':'<div class="celda"><div class="t">Cantidad</div><input id="mC" class="campo num" inputmode="decimal" value="1"></div>')+'<div class="celda"><div class="t">Precio aprox. (sin IVA)</div><input id="mP" class="campo num" inputmode="decimal" placeholder="0,00"><span class="v">€</span></div></div><button type="button" class="boton gris" onclick="buscarPrecioWeb()">🌐 Buscar precio en internet</button></div>');setTimeout(()=>document.getElementById('mN')?.focus(),50)}
 function buscarPrecioWeb(){const n=String(document.getElementById('mN')?.value||'').trim();if(!n){alert('Escribe primero qué es.');return}window.open('https://www.google.com/search?q='+encodeURIComponent(n+' precio'),'_blank')}
 function guardarMano(clave){const n=String(document.getElementById('mN').value||'').trim(),p=num(document.getElementById('mP').value);if(!n){alert('Escribe qué es.');return}if(String(document.getElementById('mP').value).trim()===''){alert('Pon un precio aproximado de referencia.');return}const t=tAct();
   if(clave)t.elegidos[clave]={mano:true,nombre:n,precio:p};else{const c=num(document.getElementById('mC').value)||1;t.extra.push({materialId:'',codigo:'',nombre:n,precio:p,cantidad:c,unidad:'ud',revisar:true})}cerrarHoja();refrescarTrabajo();tocar()}
 function hojaElegir(clave){const L=pasos(V.p),tipo=L[V.paso],t=V.p.trabajos[tipo];const l=lineasT(tipo,t).find(x=>x.clave===clave);if(!l)return;window._hClave=clave;
-  hoja(nav('Cerrar','cerrarHoja()',l.txt)+'<div class="cuerpo"><div class="buscar">🔍<input id="hq" placeholder="Buscar en mis materiales" value="'+esc(l.txt.split(' ')[0])+'" autocomplete="off" oninput="document.getElementById(\'hres\').innerHTML=listaMat(this.value,null,\'elegirLinea\')"></div><div class="grupo" style="margin-top:10px" id="hres">'+listaMat(l.txt.split(' ')[0],null,'elegirLinea')+'</div><button type="button" class="boton gris" onclick="hojaMano(\''+esc(clave)+'\')">✎ Ponerlo a mano</button>'+(t.elegidos[clave]?'<button type="button" class="boton gris" onclick="elegirLinea(\'\')">Volver a la elección automática</button>':'')+'</div>')}
+  hoja(nav('Cerrar','cerrarHoja()',l.txt)+'<div class="cuerpo"><div class="buscar">🔍<input id="hq" placeholder="Buscar" value="'+esc(l.txt.split(' ')[0])+'" autocomplete="off" oninput="document.getElementById(\'hres\').innerHTML=listaMat(this.value,null,\'elegirLinea\')"></div><div class="grupo" style="margin-top:10px" id="hres">'+listaMat(l.txt.split(' ')[0],null,'elegirLinea')+'</div><button type="button" class="boton gris" onclick="hojaMano(\''+esc(clave)+'\')">✎ Ponerlo a mano</button>'+(t.elegidos[clave]?'<button type="button" class="boton gris" onclick="elegirLinea(\'\')">Volver a la elección automática</button>':'')+'</div>')}
 function elegirLinea(id){const t=tAct();if(id)t.elegidos[window._hClave]={id};else delete t.elegidos[window._hClave];cerrarHoja();refrescarTrabajo();tocar()}
-function hojaCargador(i){const f=m=>/cargador|wallbox|recarga|carga ve|punto de carga/.test(texMat(m));hoja(nav('Cerrar','cerrarHoja()','Elegir cargador')+'<div class="cuerpo"><div class="buscar">🔍<input id="hq" placeholder="Marca, modelo, potencia…" autocomplete="off" oninput="document.getElementById(\'hres\').innerHTML=listaMat(this.value,document.getElementById(\'hTodos\').checked?null:window._fCarg,\'elegirCargador\')"></div><div class="grupo" style="margin-top:10px" id="hres">'+(db.materiales.filter(f).length?db.materiales.filter(f).sort((a,b)=>num(a.precio)-num(b.precio)).slice(0,8).map(m=>'<div class="celda tap" onclick="elegirCargador(\''+esc(m.id)+'\')"><div class="t">'+esc(m.nombre)+'<small>'+esc(m.codigo||'')+'</small></div><b>'+money(m.precio)+'</b></div>').join(''):'<div class="vacio">Busca el cargador por su nombre.</div>')+'</div><div class="grupo" style="margin-top:10px"><div class="celda"><div class="t">Buscar en todos los materiales</div><input type="checkbox" class="sw" id="hTodos"></div></div></div>');window._fCarg=f}
-function elegirCargador(id){tAct().resp.cargador=id;cerrarHoja();tocar();pintar()}
+function hojaFijo(campo,tit,re){const f=m=>re.test(texMat(m));window._fijo={campo,f};const L=db.materiales.filter(f).sort((a,b)=>num(a.precio)-num(b.precio)).slice(0,8);
+  hoja(nav('Cerrar','cerrarHoja()',tit)+'<div class="cuerpo"><div class="buscar">🔍<input id="hq" placeholder="Buscar" autocomplete="off" oninput="document.getElementById(\'hres\').innerHTML=listaMat(this.value,document.getElementById(\'hTodos\').checked?null:window._fijo.f,\'elegirFijo\')"></div><div class="grupo" style="margin-top:10px" id="hres">'+(L.length?L.map(m=>'<div class="celda tap" onclick="elegirFijo(\''+esc(m.id)+'\')"><div class="t">'+esc(m.nombre)+'<small>'+esc(m.codigo||'')+'</small></div><b>'+money(m.precio)+'</b></div>').join(''):'<div class="vacio">Escribe al menos 2 letras.</div>')+'</div><div class="grupo" style="margin-top:10px"><div class="celda"><div class="t">Buscar en todos los materiales</div><input type="checkbox" class="sw" id="hTodos"></div></div>'+(tAct().resp[campo]?'<button type="button" class="boton rojo" onclick="elegirFijo(\'\')">Quitar el elegido</button>':'')+'</div>')}
+function elegirFijo(id){const t=tAct();t.resp[window._fijo.campo]=id;if(window._fijo.campo==='armario')delete t.elegidos.armario;cerrarHoja();tocar();pintar()}
 function hojaOtroMt(i){window._o={p:'mono',a:'32'};const pint=()=>hoja(nav('Cancelar','cerrarHoja()','Otro magnetotérmico','Añadir','addOtroMt()')+'<div class="cuerpo"><div class="grupo"><div class="celda"><div class="seg" style="flex:1">'+['mono','tri'].map(v=>'<button type="button" class="'+(window._o.p===v?'on':'')+'" onclick="window._o.p=\''+v+'\';window._oPint()">'+(v==='mono'?'Monofásico':'Trifásico')+'</button>').join('')+'</div></div><div class="celda" style="flex-wrap:wrap"><div class="t">Calibre (A)</div><div class="seg">'+['6','10','16','20','25','32','40','50','63'].map(v=>'<button type="button" class="'+(window._o.a===v?'on':'')+'" onclick="window._o.a=\''+v+'\';window._oPint()">'+v+'</button>').join('')+'</div></div></div></div>');window._oPint=pint;pint()}
 function addOtroMt(){const r=tAct().resp,o=window._o,a=Number(o.a);const ya=r.mt.find(x=>x.p===o.p&&x.a===a);if(ya)ya.n++;else r.mt.push({p:o.p,a,n:1});cerrarHoja();tocar();pintar()}
 function hojaOtroDif(i){window._o={p:'2P',a:'40',s:'30'};const pint=()=>hoja(nav('Cancelar','cerrarHoja()','Otro diferencial','Añadir','addOtroDif()')+'<div class="cuerpo"><div class="grupo">'+[['p',['2P','4P'],'Polos'],['a',['25','40','63'],'Intensidad (A)'],['s',['30','300'],'Sensibilidad (mA)']].map(([k,ops,t])=>'<div class="celda"><div class="t">'+t+'</div><div class="seg">'+ops.map(v=>'<button type="button" class="'+(window._o[k]===v?'on':'')+'" onclick="window._o.'+k+'=\''+v+'\';window._oPint()">'+v+'</button>').join('')+'</div></div>').join('')+'</div></div>');window._oPint=pint;pint()}
 function addOtroDif(){const r=tAct().resp,o=window._o,a=Number(o.a),s=Number(o.s);const ya=r.dif.find(x=>x.p===o.p&&x.a===a&&x.s===s);if(ya)ya.n++;else r.dif.push({p:o.p,a,s,n:1});cerrarHoja();tocar();pintar()}
-function hojaDi(i,j){const r=tAct().resp;window._di=j>=0?{...r.dis[j]}:{piso:'',sec:'10',m:''};window._diJ=j;const pint=()=>hoja(nav('Cancelar','cerrarHoja()','DI','Listo','guardarDi()')+'<div class="cuerpo"><div class="grupo"><div class="celda"><div class="t">Piso y puerta</div><input class="campo num" style="max-width:160px" value="'+esc(window._di.piso)+'" placeholder="Ej.: 2º B" oninput="window._di.piso=this.value"></div><div class="celda"><div class="t">Sección (mm²)</div><div class="seg">'+['6','10','16','25'].map(v=>'<button type="button" class="'+(window._di.sec===v?'on':'')+'" onclick="window._di.sec=\''+v+'\';window._diPint()">'+v+'</button>').join('')+'</div></div><div class="celda"><div class="t">Metros</div><input class="campo num" inputmode="decimal" value="'+esc(window._di.m)+'" placeholder="0" oninput="window._di.m=this.value"><span class="v">m</span></div></div><div class="nota">No se puede poner menos de 6 mm² (mínimo del REBT).</div>'+(j>=0?'<button type="button" class="boton rojo" onclick="quitarDi()">Quitar esta DI</button>':'')+'</div>');window._diPint=pint;pint()}
+function hojaDi(i,j){const r=tAct().resp;window._di=j>=0?{...r.dis[j]}:{piso:'',sec:'10',m:''};window._diJ=j;const pint=()=>hoja(nav('Cancelar','cerrarHoja()','DI','Listo','guardarDi()')+'<div class="cuerpo"><div class="grupo"><div class="celda"><div class="t">Piso y puerta</div><input class="campo num" style="max-width:160px" value="'+esc(window._di.piso)+'" placeholder="Ej.: 2º B" oninput="window._di.piso=this.value"></div><div class="celda"><div class="t">Sección (mm²)</div><div class="seg">'+['6','10','16','25'].map(v=>'<button type="button" class="'+(window._di.sec===v?'on':'')+'" onclick="window._di.sec=\''+v+'\';window._diPint()">'+v+'</button>').join('')+'</div></div><div class="celda"><div class="t">Metros</div><input class="campo num" inputmode="decimal" value="'+esc(window._di.m)+'" placeholder="0" oninput="window._di.m=this.value"><span class="v">m</span></div></div>'+(j>=0?'<button type="button" class="boton rojo" onclick="quitarDi()">Quitar esta DI</button>':'')+'</div>');window._diPint=pint;pint()}
 function guardarDi(){const r=tAct().resp,d=window._di;if(num(d.sec)<6){alert('La sección mínima de una DI es 6 mm².');return}if(window._diJ>=0)r.dis[window._diJ]=d;else r.dis.push(d);cerrarHoja();tocar();pintar()}
 function quitarDi(){tAct().resp.dis.splice(window._diJ,1);cerrarHoja();tocar();pintar()}
 
@@ -428,7 +349,7 @@ function estimadoHtml(p){const e=B().empresa||{},T=totalesP(p),r=p.cliente.id?re
   const cli=r?{nombre:r.nombre,nif:r.nif,dir:[r.dir,r.localidad,r.cp].filter(Boolean).join(', '),tel:r.tel}:{nombre:p.cliente.nombre,dir:p.cliente.dir,tel:p.cliente.tel};
   const notas=T.tr.map(x=>TPL[x.tipo].notaPdf?TPL[x.tipo].notaPdf(p.trabajos[x.tipo]):'').filter(Boolean);
   const linea=(a,b,c)=>'<tr><td>'+a+'</td><td>'+b+'</td><td class="n">'+c+'</td></tr>';
-  let filas='';T.tr.forEach(x=>{const res=TPL[x.tipo].resumen(p.trabajos[x.tipo]);filas+='<tr class="tr"><td colspan="3"><b>'+esc(TPL[x.tipo].t)+'</b>'+(res?'<div class="res">'+esc(res)+'</div>':'')+'</td></tr>'+linea('','Materiales',money(x.mat))+linea('','Mano de obra',money(x.mo))+'<tr class="sub"><td></td><td>Subtotal</td><td class="n">'+money(x.sub)+'</td></tr>'});
+  let filas='';T.tr.forEach(x=>{const res=TPL[x.tipo].resumen(p.trabajos[x.tipo]);filas+='<tr class="tr"><td colspan="3"><b>'+esc(TPL[x.tipo].t)+'</b>'+(res?'<div class="res">'+esc(res)+'</div>':'')+'</td></tr>'+linea('','Materiales',money(x.mat))+linea('','Mano de obra'+(String(p.trabajos[x.tipo].moDesc||'').trim()?'<div class="res">'+esc(String(p.trabajos[x.tipo].moDesc).trim()).replace(/\n/g,'<br>')+'</div>':''),money(x.mo))+'<tr class="sub"><td></td><td>Subtotal</td><td class="n">'+money(x.sub)+'</td></tr>'});
   return '<!doctype html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{margin:0;font:13px/1.45 -apple-system,"Helvetica Neue",Arial,sans-serif;color:#1d1d1f;background:#fff}.h{padding:46px 48px}.cab{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.emp{font-size:12px;color:#6e6e73}.emp b{display:block;font-size:16px;color:#1d1d1f;margin-bottom:2px}.logo{max-width:170px;max-height:70px;object-fit:contain;display:block;margin-bottom:8px}h1{margin:0;font-size:24px;letter-spacing:.03em;text-align:right}.meta{text-align:right;color:#6e6e73;font-size:12px;margin-top:6px}.caja{margin-top:26px;padding:14px 16px;background:#f5f5f7;border-radius:10px}.et{font-size:11px;font-weight:700;color:#0b57d0;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:22px}td{padding:7px 4px;border-bottom:1px solid #e5e5ea;vertical-align:top}td.n{text-align:right;white-space:nowrap}tr.tr td{padding-top:14px;border-bottom:0}.res{color:#6e6e73;font-size:12px;margin-top:2px}tr.sub td{font-weight:600}.tot{margin-top:18px;margin-left:auto;width:55%}.tot div{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e5e5ea}.tot .g{font-size:18px;font-weight:700;border-bottom:0;border-top:2px solid #1d1d1f;padding-top:9px;margin-top:4px}.nota{margin-top:26px;color:#6e6e73;font-size:12px}</style></head><body><div class="h">'+
    '<div class="cab"><div class="emp">'+(e.logo?'<img class="logo" src="'+esc(e.logo)+'">':'')+'<b>'+esc(e.nombre||'')+'</b>'+[e.nif?'NIF '+e.nif:'',[e.direccion,e.localidad,e.cp].filter(Boolean).join(', '),[e.telefono,e.email].filter(Boolean).join(' · '),e.web].filter(Boolean).map(esc).join('<br>')+'</div><div><h1>PRESUPUESTO ESTIMADO</h1><div class="meta">Fecha: '+new Date((p.fecha||hoyLocal())+'T12:00').toLocaleDateString('es-ES')+'<br>Válido 15 días'+(p.hechoPor?'<br>Hecho por: '+esc(p.hechoPor):'')+'</div></div></div>'+
    '<div class="caja"><div class="et">Cliente</div><b>'+esc(cli.nombre||'')+'</b>'+[cli.nif?'NIF '+cli.nif:'',cli.dir,cli.tel].filter(Boolean).map(x=>'<br>'+esc(x)).join('')+'</div>'+
