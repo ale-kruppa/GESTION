@@ -55,10 +55,12 @@ button,input,select,textarea{font:inherit;color:inherit}
 .quitar{border:0;background:none;color:var(--rojo);font-size:13px;cursor:pointer;padding:0 0 0 4px}
 .tres{display:flex;border-top:.5px solid var(--linea)}.tres label{flex:1;text-align:center;padding:12px 4px;color:var(--azul);font-size:15px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}.tres label+label{border-left:.5px solid var(--linea)}.tres svg{width:24px;height:24px}.grupo>.tres:first-child{border-top:0}
 .pie{display:flex;justify-content:flex-end;padding:16px 20px calc(env(safe-area-inset-bottom) + 26px)}.pie button{background:none;border:0;color:var(--azul);font-size:17px;font-weight:600;cursor:pointer;padding:6px 0}
+.hoja>div{height:92vh;height:92dvh;max-height:none}
+@media (min-width:700px){.hoja{align-items:flex-start;padding-top:6vh}.hoja>div{height:80vh;height:80dvh;border-radius:14px}.hoja .nav{border-radius:14px 14px 0 0}}
 .pv-sel{padding:10px 16px;border-top:.5px solid var(--linea)}.pv-sel-t{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px;font-size:15px}.pv-opt{display:flex;gap:8px;align-items:center;padding:9px 11px;border-radius:10px;background:var(--relleno);cursor:pointer;font-size:15px;margin-top:4px}.pv-opt.on{background:light-dark(#e5f0ff,#10294d);cursor:default}.pv-opt.pv-roja{outline:1px solid var(--rojo)}.pv-drop{margin-top:6px}.pv-falta{color:var(--rojo);font-weight:600}.pv-sel input.search{width:100%;border:0;background:var(--relleno);border-radius:10px;padding:9px 12px;font-size:16px;outline:none;margin-top:8px}.pv-todos{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--sec);margin-top:8px}.pv-sel .btn.small{border:0;background:none;color:var(--azul);padding:4px 0;font-size:15px;cursor:pointer}.smallnote{font-size:13px;color:var(--sec)}</style></head><body><div id="app"></div>
 <script>
 /* ===== APP DE PRESUPUESTOS (apoyo en obra y oficina) — núcleo ===== */
-const APP_PRES_VER=8;
+const APP_PRES_VER=9;
 const LS_CFG='presCampo_cfg',LS_BASE='presCampo_base',LS_DATOS='presCampo_datos';
 function leerLS(k,def){try{const v=JSON.parse(localStorage.getItem(k)||'null');return v==null?def:v}catch(e){return def}}
 function escribirLS(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){alert('⚠ No se pudo guardar en este aparato: '+(e&&e.message||e));return false}}
@@ -156,7 +158,7 @@ const reAmp=a=>new RegExp('(^|[^\\d])'+a+'\\s?a\\b');
 const reSec=s=>new RegExp('(^|[^\\d.,])'+String(s).replace(/[.,]/,'[.,]')+'\\s?(mm|x|²|\\b)');
 const RE_MONO=/1p\+n|\b2p\b|bipolar|monof|\bmono\b/,RE_TRI=/\b4p\b|3p\+n|tetrapolar|trifas|\btri\b/;
 const RE_CABLE={'H07Z1-K':/h07z1/,'RZ1-K':/rz1/,'ES07Z1-K':/es07z1/,'H07V-K':/h07v/};
-const nuevaT=tipo=>({on:false,resp:TPL[tipo].nuevo(),extra:[],mo:'',moDesc:'',obs:'',elegidos:{},totalManual:''});
+const nuevaT=tipo=>({on:false,resp:TPL[tipo].nuevo(),extra:[],mo:'',moDesc:'',obs:'',elegidos:{},quitados:{},totalManual:''});
 const TPL={};
 /* ===== v8: piezas comunes de las plantillas ===== */
 const RE_COL={'azul':/azul/,'marrón':/marron/,'negro':/negr/,'gris':/gris/,'verde-amarillo':/verde|amarill|tierra/,'rojo':/roj/};
@@ -171,6 +173,7 @@ function lineasTubo(L,m,c){m=num(m);c=num(c);const tubos=Math.ceil(m/3),gr=Math.
   if(tubos>1)L.push({clave:'union',txt:'Unión tubo 32 mm',q:tubos-1,req:[/union|manguito|empalme/,reNum(32)]});
   if(c)L.push({clave:'curva',txt:'Curva 32 mm',q:c,req:[/curva/,reNum(32)]});
   if(gr)L.push({clave:'grapa',txt:'Grapa tubo 32 mm',q:gr,req:[/grapa|abrazadera/,reNum(32)]});return gr}
+function lineasPica(L,m,sec){L.push({clave:'pica',txt:'Pica de tierra',q:1,req:[/^(?!.*(grapa|brida|abrazadera)).*pica/]});L.push({clave:'bpica',txt:'Brida para pica de tierra',q:1,req:[/grapa|brida|abrazadera/,/pica/]});if(num(m)>0)L.push({clave:'cpica',txt:'Cable '+sec+' mm² verde-amarillo (pica)',q:num(m),unidad:'m',req:[RE_CAB,reSec(sec),RE_COL['verde-amarillo']]})}
 function lineasTacos(L,mm,q){if(!(q>0))return;L.push({clave:'taco'+mm,txt:'Taco '+mm+' mm',q,req:[/taco/,reNum(mm)]});L.push({clave:'tornillo'+mm,txt:'Tornillo '+mm+' mm',q,req:[/tornillo|tirafondo/,reNum(mm)]})}
 function lineasCables(L,pref,sec,cols,q){if(!(q>0))return;cols.forEach(c=>L.push({clave:pref+':'+c,txt:'Cable '+sec+' mm² '+c,q,unidad:'m',req:[RE_CAB,reSec(sec),RE_COL[c]]}))}
 const COL_MONO=['marrón','azul','verde-amarillo'],COL_TRI=['marrón','negro','gris','azul','verde-amarillo'];
@@ -196,13 +199,13 @@ TPL.cuadro={t:'Cambio o reforma de cuadro',corto:'Cuadro',ico:'▦',color:'#007a
 const SEC_GRANDES=['16','25','35','50','70','95','120','150','185','240'];
 const nTermCont=r=>num(r.mono)*6+num(r.tri)*12;
 TPL.contadores={t:'Contadores',corto:'Contadores',ico:'▤',color:'#5856d6',
-  nuevo:()=>({cgp:true,cgpFase:'Tri',sistema:'V2',esq:'9',int:'160',acoMat:'Aluminio',acoSec:'50',lga:false,lgaMat:'Cobre',lgaSec:'50',lgaM:'',mono:0,tri:0,armario:'',termSec:'6',tacos:6,tierra:'',di:false,dis:[]}),
+  nuevo:()=>({cgp:true,cgpFase:'Tri',sistema:'V2',esq:'9',int:'160',acoMat:'Aluminio',acoSec:'50',lga:false,lgaMat:'Cobre',lgaSec:'50',lgaM:'',mono:0,tri:0,armario:'',termSec:'6',tacos:6,tierra:'',tierraM:0,tierraSec:'16',di:false,dis:[]}),
   preguntas(t,i){const r=t.resp,arm=r.armario?db.materiales.find(x=>x.id===r.armario):null;if(/^V1/.test(r.sistema||''))r.sistema='V1';else if(/^V2/.test(r.sistema||''))r.sistema='V2';if(!r.cgpFase)r.cgpFase='Tri';
     let h='<div class="etq t">Caja general de protección '+sw(r.cgp,i,'cgp')+'</div>'+(r.cgp?'<div class="grupo">'+celdaSeg('Tipo',['Mono','Tri'],r.cgpFase,i,'cgpFase')+celdaSeg('Sistema',['V1','V2'],r.sistema,i,'sistema')+celdaSeg('Esquema',['7','9','10','11'],r.esq,i,'esq')+celdaSeg('Intensidad (A)',['100','160','250','400'],r.int,i,'int')+celdaSeg('Acometida',['Cobre','Aluminio'],r.acoMat,i,'acoMat')+celdaSel('Sección de la acometida (mm²)',SEC_GRANDES,r.acoSec,i,'acoSec')+'</div>':'');
     h+='<div class="etq t">LGA</div><div class="grupo">'+celdaSeg('Material',['Cobre','Aluminio'],r.lgaMat,i,'lgaMat')+celdaSel('Sección (mm²)',SEC_GRANDES,r.lgaSec,i,'lgaSec')+celdaSw('Se cambia el cable',r.lga,i,'lga')+(r.lga?celdaNum('Metros',r.lgaM,i,'lgaM','m'):'')+'</div>';
     h+='<div class="etq t">Contadores</div><div class="grupo">'+celdaStep('Monofásicos',r.mono,`tSet2(${i},'mono',`)+celdaStep('Trifásicos',r.tri,`tSet2(${i},'tri',`)+
       celdaFijo('armario','Armario de contadores','/armario|centraliz|contador/',arm)+celdaSeg('Terminales (mm²)',['6','10','16'],String(r.termSec),i,'termSec')+
-      celdaStep('Tacos y tornillos de 8 mm',r.tacos,`tSet2(${i},'tacos',`)+celdaSeg('Puesta a tierra',['Sí','No'],r.tierra,i,'tierra',true)+'</div>';
+      celdaStep('Tacos y tornillos de 8 mm',r.tacos,`tSet2(${i},'tacos',`)+celdaSeg('Puesta a tierra',['Sí','No'],r.tierra,i,'tierra',true)+(r.tierra==='No'?celdaStep('Metros de cable',num(r.tierraM),`tSet2(${i},'tierraM',`)+celdaSeg('Sección (mm²)',['6','10','16'],String(r.tierraSec||'16'),i,'tierraSec'):'')+'</div>';
     h+='<div class="etq t">DI a cambiar '+sw(r.di,i,'di')+'</div>'+(r.di?'<div class="grupo">'+r.dis.map((d,j)=>'<div class="celda tap chev" onclick="hojaDi('+i+','+j+')"><div class="t">'+esc(d.piso||'Sin indicar')+'<small>'+esc(d.sec)+' mm² · '+esc(d.m||0)+' m</small></div></div>').join('')+'<div class="celda tap" onclick="hojaDi('+i+',-1)"><div class="t azul">Añadir DI</div></div></div>':'');return h},
   lineas(t){const r=t.resp,L=[];const al=r.lgaMat==='Aluminio',alA=r.acoMat==='Aluminio',n=r.cgpFase==='Mono'?2:4;
     const term=(clave,sec,alu,q,donde)=>({clave,txt:'Terminal '+(alu?'bimetálico ':'')+sec+' mm² ('+donde+')',q,req:[/terminal/,reSec(sec)],pref:alu?[/bimet/]:[]});
@@ -213,6 +216,7 @@ TPL.contadores={t:'Contadores',corto:'Contadores',ico:'▤',color:'#5856d6',
     if(num(r.mono)+num(r.tri)>0)lineaFija(L,'armario',r.armario,'Armario de contadores',1);
     if(nTermCont(r)>0)L.push({clave:'tcont',txt:'Terminal '+r.termSec+' mm² (contadores y DI)',q:nTermCont(r),req:[/terminal|puntera/,reSec(r.termSec)]});
     lineasTacos(L,8,num(r.tacos));
+    if(r.tierra==='No')lineasPica(L,r.tierraM,String(r.tierraSec||'16'));
     if(r.di){const por={};r.dis.forEach(d=>{const s=String(Math.max(6,num(d.sec)||6));por[s]=(por[s]||0)+num(d.m)});Object.keys(por).forEach(s=>{if(por[s]>0)L.push({clave:'di:'+s,txt:'Cable DI '+s+' mm²',q:por[s],unidad:'m',req:[RE_CAB,reSec(s)],pref:[/es07z1|rz1/]})})}
     return L},
   resumen(t){const r=t.resp,p=[],n=num(r.mono)+num(r.tri);if(r.cgp)p.push('CGP '+(r.cgpFase==='Mono'?'monofásica':'trifásica')+' esquema '+r.esq+' de '+r.int+' A');if(r.lga)p.push('LGA '+(r.lgaMat==='Aluminio'?'de aluminio':'de cobre')+' '+r.lgaSec+' mm²');if(n)p.push('armario para '+n+' contador'+(n>1?'es':'')+' ('+[num(r.mono)?num(r.mono)+' monofásico'+(num(r.mono)>1?'s':''):'',num(r.tri)?num(r.tri)+' trifásico'+(num(r.tri)>1?'s':''):''].filter(Boolean).join(' y ')+')');if(r.di&&r.dis.length)p.push(r.dis.length+' DI');return p.join(', ')},
@@ -272,12 +276,11 @@ TPL.solar={t:'Solar',corto:'Solar',ico:'☀︎',color:'#ff9500',
       L.push({clave:'mt',txt:'Magnetotérmico '+(tri?'4P':'bipolar'),q:2,req:[/magneto/,tri?RE_TRI:RE_MONO]});L.push({clave:'dif',txt:'Diferencial '+(tri?'4P':'bipolar'),q:1,req:[/diferen/,tri?RE_TRI:RE_MONO]})}
     if(r.bat){lineaFija(L,'bateria',r.batMat,'Batería',1);t8+=8}
     if(pan)L.push({clave:'pun6',txt:'Puntera 6 mm²',q:50,req:[/puntera|terminal/,reSec(6)],pref:[/puntera/]});
-    if(r.pica==='No'){L.push({clave:'pica',txt:'Pica de tierra',q:1,req:[/^(?!.*(grapa|brida|abrazadera)).*pica/]});L.push({clave:'bpica',txt:'Brida para pica de tierra',q:1,req:[/grapa|brida|abrazadera/,/pica/]});
-      if(num(r.picaM))L.push({clave:'cpica',txt:'Cable '+r.picaSec+' mm² verde-amarillo (pica)',q:num(r.picaM),unidad:'m',req:[RE_CAB,reSec(r.picaSec),RE_COL['verde-amarillo']]})}
+    if(r.pica==='No')lineasPica(L,r.picaM,String(r.picaSec||'16'));
     lineasTacos(L,8,t8);lineasTacos(L,6,t6);return L},
   resumen(t){const r=t.resp;return [num(r.pan)?num(r.pan)+' paneles':'',r.inst==='Sin inversor'?'ampliación sin inversor':'instalación '+(r.inst==='Tri'?'trifásica':'monofásica'),num(r.str)?num(r.str)+' string'+(num(r.str)>1?'s':''):'',r.bat?'con batería':''].filter(Boolean).join(', ')}};
 /* ---------- materiales y totales de un trabajo ---------- */
-function lineasT(tipo,t){return TPL[tipo].lineas(t).map(l=>{let m=null,mano=null;const e=t.elegidos[l.clave];
+function lineasT(tipo,t){const q=t.quitados||{};return TPL[tipo].lineas(t).filter(l=>!q[l.clave]).map(l=>{let m=null,mano=null;const e=t.elegidos[l.clave];
   if(l.fijo)m=l.fijo;else if(e&&e.mano)mano=e;else if(e&&e.id)m=db.materiales.find(x=>x.id===e.id)||null;else if(l.req&&!l.falta)m=buscarAuto(l.req,l.pref);
   const precio=mano?num(mano.precio):m?num(m.precio):0;return {...l,m,mano,precio,nombre:mano?mano.nombre:m?m.nombre:l.txt,pendiente:!m&&!mano,revisar:!!(mano||l.revisar)}})}
 function totalesT(tipo,t){const L=lineasT(tipo,t);let mat=round2(L.reduce((a,x)=>a+x.q*x.precio,0)+t.extra.reduce((a,x)=>a+num(x.cantidad)*num(x.precio),0));
@@ -373,7 +376,7 @@ function vTrabajo(tipo){const p=V.p,t=p.trabajos[tipo],L=pasos(p),i=V.paso;const
 function matTHtml(tipo,t){const T=totalesT(tipo,t);let h='<div class="grupo">';
   T.L.forEach(x=>{h+='<div class="celda'+(x.falta?'':' tap')+'"'+(x.falta||x.fijo?'':' onclick="hojaElegir(\''+x.clave+'\')"')+'><div class="t">'+(x.pendiente?'<span class="'+(x.falta?'rojo':'azul')+'">'+esc(x.txt)+'</span><small>'+(x.falta?esc(x.falta):'Toca para elegir')+'</small>':esc(x.nombre)+'<small>'+(+x.q.toFixed(3))+' '+esc(x.unidad||x.m?.unidad||'ud')+' × '+money(x.precio)+' = '+money(x.q*x.precio)+(x.revisar?' · <span style="color:var(--avisotxt)">manual</span>':'')+'</small>')+'</div>'+(x.fijo||x.falta?'':'<span class="v">›</span>')+'</div>'});
   t.extra.forEach((x,j)=>{h+='<div class="celda"><div class="t">'+esc(x.nombre)+'<small>'+money(x.precio)+(x.revisar?' (referencia) · <span style="color:var(--avisotxt)">manual</span>':'')+'</small></div><div class="step"><button type="button" onclick="extraCant('+j+',-1)">−</button><input inputmode="decimal" value="'+esc(x.cantidad)+'" onchange="extraCant('+j+',this.value,true)"><button type="button" onclick="extraCant('+j+',1)">+</button></div></div>'});
-  h+='<div class="celda tap" onclick="hojaBuscarMat()"><div class="t azul">Añadir de mis materiales</div></div><div class="celda tap" onclick="hojaMano()"><div class="t azul">Añadir manualmente</div></div></div>';
+  h+='<div class="celda tap" onclick="hojaBuscarMat()"><div class="t azul">Añadir de mis materiales</div></div><div class="celda tap" onclick="hojaMano()"><div class="t azul">Añadir manualmente</div></div>'+(Object.keys(t.quitados||{}).length?'<div class="celda tap" onclick="restaurarQuitados()"><div class="t azul">Restaurar materiales quitados ('+Object.keys(t.quitados).length+')</div></div>':'')+'</div>';
   if(T.pend)h+='<div class="aviso">'+T.pend+' material'+(T.pend>1?'es':'')+' sin elegir</div>';return h}
 function subTHtml(tipo,t){const T=totalesT(tipo,t);let h='<div class="grupo" style="margin-top:18px;padding:10px 16px"><div class="tot"><span>Materiales</span><b>'+money(T.mat)+'</b></div><div class="tot"><span>Mano de obra</span><b>'+money(T.mo)+'</b></div><div class="tot s"><span>Subtotal '+esc(TPL[tipo].corto.toLowerCase())+'</span><span>'+money(T.sub)+'</span></div></div>';
   if(TPL[tipo].libre)h+='<div class="etq">Total de este trabajo</div><div class="grupo"><div class="celda"><div class="t">Calculado</div><span class="v">'+money(T.calc)+'</span></div><div class="celda"><div class="t">Total que quieres poner</div><input class="campo num" inputmode="decimal" placeholder="—" value="'+esc(t.totalManual)+'" onchange="tAct().totalManual=this.value;refrescarTrabajo();tocar()"></div></div>';return h}
@@ -417,7 +420,9 @@ function buscarPrecioWeb(){const n=String(document.getElementById('mN')?.value||
 function guardarMano(clave){const n=String(document.getElementById('mN').value||'').trim(),p=num(document.getElementById('mP').value);if(!n){alert('Escribe qué es.');return}if(String(document.getElementById('mP').value).trim()===''){alert('Pon un precio aproximado de referencia.');return}const t=tAct();
   if(clave)t.elegidos[clave]={mano:true,nombre:n,precio:p};else{const c=num(document.getElementById('mC').value)||1;t.extra.push({materialId:'',codigo:'',nombre:n,precio:p,cantidad:c,unidad:'ud',revisar:true})}cerrarHoja();refrescarTrabajo();tocar()}
 function hojaElegir(clave){const L=pasos(V.p),tipo=L[V.paso],t=V.p.trabajos[tipo];const l=lineasT(tipo,t).find(x=>x.clave===clave);if(!l)return;window._hClave=clave;
-  hoja(nav('Cerrar','cerrarHoja()',l.txt)+'<div class="cuerpo"><div class="buscar">🔍<input id="hq" placeholder="Buscar" value="'+esc(l.txt.split(' ')[0])+'" autocomplete="off" oninput="document.getElementById(\'hres\').innerHTML=listaMat(this.value,null,\'elegirLinea\')"></div><div class="grupo" style="margin-top:10px" id="hres">'+listaMat(l.txt.split(' ')[0],null,'elegirLinea')+'</div><button type="button" class="boton gris" onclick="hojaMano(\''+esc(clave)+'\')">Introducir manualmente</button>'+(t.elegidos[clave]?'<button type="button" class="boton gris" onclick="elegirLinea(\'\')">Volver a la elección automática</button>':'')+'</div>')}
+  hoja(nav('Cerrar','cerrarHoja()',l.txt)+'<div class="cuerpo"><div class="buscar">🔍<input id="hq" placeholder="Buscar" value="'+esc(l.txt.split(' ')[0])+'" autocomplete="off" oninput="document.getElementById(\'hres\').innerHTML=listaMat(this.value,null,\'elegirLinea\')"></div><div class="grupo" style="margin-top:10px" id="hres">'+listaMat(l.txt.split(' ')[0],null,'elegirLinea')+'</div><button type="button" class="boton gris" onclick="hojaMano(\''+esc(clave)+'\')">Introducir manualmente</button>'+(t.elegidos[clave]?'<button type="button" class="boton gris" onclick="elegirLinea(\'\')">Volver a la elección automática</button>':'')+'<button type="button" class="boton rojo" onclick="quitarLinea()">Quitar este material</button></div>')}
+function quitarLinea(){const t=tAct();t.quitados=t.quitados||{};t.quitados[window._hClave]=true;delete t.elegidos[window._hClave];cerrarHoja();refrescarTrabajo();tocar()}
+function restaurarQuitados(){const t=tAct();t.quitados={};refrescarTrabajo();tocar()}
 function elegirLinea(id){const t=tAct();if(id)t.elegidos[window._hClave]={id};else delete t.elegidos[window._hClave];cerrarHoja();refrescarTrabajo();tocar()}
 function hojaFijo(campo,tit,re){const f=m=>re.test(texMat(m));window._fijo={campo,f};const L=db.materiales.filter(f).sort((a,b)=>num(a.precio)-num(b.precio)).slice(0,8);
   hoja(nav('Cerrar','cerrarHoja()',tit)+'<div class="cuerpo"><div class="buscar">🔍<input id="hq" placeholder="Buscar" autocomplete="off" oninput="document.getElementById(\'hres\').innerHTML=listaMat(this.value,document.getElementById(\'hTodos\').checked?null:window._fijo.f,\'elegirFijo\')"></div><div class="grupo" style="margin-top:10px" id="hres">'+(L.length?L.map(m=>'<div class="celda tap" onclick="elegirFijo(\''+esc(m.id)+'\')"><div class="t">'+esc(m.nombre)+'<small>'+esc(m.codigo||'')+'</small></div><b>'+money(m.precio)+'</b></div>').join(''):'<div class="vacio">Escribe al menos 2 letras.</div>')+'</div><div class="grupo" style="margin-top:10px"><div class="celda"><div class="t">Buscar en todos los materiales</div><input type="checkbox" class="sw" id="hTodos"></div></div>'+(tAct().resp[campo]?'<button type="button" class="boton rojo" onclick="elegirFijo(\'\')">Quitar el elegido</button>':'')+'</div>')}
