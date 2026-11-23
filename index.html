@@ -187,6 +187,14 @@
 .aspecto{background:none;border:0;padding:6px;color:var(--text);cursor:pointer;display:inline-flex;align-items:center;line-height:0;border-radius:10px}.aspecto:hover{background:var(--panel2)}.dsh-right .aspecto{margin-right:6px}
 
 .tablewrap .bm-lista{position:static;margin-top:4px;box-shadow:none}
+
+.dsh-fila{justify-content:flex-end;margin:-8px 0 22px}
+.dsh-actions .btn.cyan{background:linear-gradient(135deg,#22d3ee,#0891b2);color:#fff;border:0;box-shadow:0 6px 16px rgba(8,145,178,.28)}
+.dsh-alertas h3{font-size:20px;display:flex;align-items:center;gap:10px}.al-tot{background:var(--danger);color:#fff;border-radius:99px;padding:1px 11px;font-size:14px;font-weight:700}
+.dsh-alertas .dsh-alert{font-size:16px;padding:16px 18px;font-weight:500}.dsh-alertas .dsh-alert .dot{width:11px;height:11px}.dsh-alertas .dsh-alert .n{font-size:18px}
+.tp-cifra{font-size:26px;font-weight:800;letter-spacing:-.01em}.tp-cifra small{font-size:15px;color:var(--muted2);font-weight:600}
+.tp-barra{height:10px;border-radius:5px;background:var(--panel2);overflow:hidden;margin:12px 0 8px}.tp-barra i{display:block;height:100%;border-radius:5px;background:var(--ok)}.tp-barra i.o{background:#ea580c}.tp-barra i.r{background:var(--danger)}
+.tp-txt b.ok{color:var(--ok)}.tp-txt b.o{color:#ea580c}.tp-txt b.r{color:var(--danger)}
 </style>
 </head>
 <body><div id="app"></div>
@@ -544,7 +552,7 @@ function icTotal(filas){let mx=NaN;const dec=/^-?\d{1,3}(?:[.,]?\d{3})*[.,]\d{2}
   filas.forEach((row,r)=>{const t=row.map(celdaTxt).join(' ');if(!/total|a pagar/i.test(t)||/sub\s*total/i.test(t))return;let vs=[];for(let k=r;k<=Math.min(filas.length-1,r+2);k++)vs.push(...vals(filas[k]));if(!vs.length&&filas[r+3])vs=vals(filas[r+3]);vs.forEach(v=>{if(!(v<=mx))mx=v})});return isNaN(mx)?'':mx}
 function icNumFactura(filas){for(let r=0;r<filas.length-1;r++){const row=filas[r].map(celdaTxt);const j=row.findIndex(c=>/^(n[º°o.]*\s*(de\s*)?factura|factura\s*n[º°o.]*|n[úu]m(ero)?\.?\s*(de\s*)?factura)\s*:?$/i.test(c));if(j<0)continue;const sig=filas[r+1].map(celdaTxt);const v=(j===row.length-1?sig[sig.length-1]:sig[j])||'';if(/\d/.test(v)&&!/^\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}$/.test(v))return v.replace(/\s+/g,'')}return ''}
 /* ==== v34: SINCRONIZACIÓN CON GOOGLE (enchufe intercambiable: hoy Google Apps Script, mañana otro servidor) ==== */
-const APP_VER=48,SYNC_KEY='gestionTecnicaSync_v1';
+const APP_VER=49,SYNC_KEY='gestionTecnicaSync_v1';
 const syncEst={enCurso:false,pendiente:false,timer:null,ultimoOk:0,tipo:'',txt:'',iniciado:false,avisoDup:''};
 function syncCfg(){try{return JSON.parse(localStorage.getItem(SYNC_KEY)||'{}')||{}}catch(e){return {}}}
 function syncCfgGuardar(c){try{localStorage.setItem(SYNC_KEY,JSON.stringify(c))}catch(e){}}
@@ -815,7 +823,20 @@ function ivaPagadoTotal(){return db.ivaPagos.reduce((a,x)=>a+Number(x.importe||0
 function ivaFavorTotal(){let liqs=liquidacionesIva();return liqs.length?liqs[liqs.length-1].aFavor:0}
 function ivaPendienteTotal(){let liqs=liquidacionesIva();return liqs.reduce((a,l)=>a+l.pendiente,0)}
 function irpfPct(){return Number(db.empresa.irpf||0)}
-function cuotaAutonomoMes(m){const h=(db.empresa.cuotasAutonomo||[]).filter(x=>x.desde&&x.desde<=m).sort((a,b)=>a.desde<b.desde?-1:(a.desde>b.desde?1:0));return h.length?round2(Number(h[h.length-1].importe)||0):0}
+function cuotaAutonomoMes(m){const h=(db.empresa.cuotasAutonomo||[]).filter(x=>x.desde&&x.desde<=m).sort((a,b)=>a.desde<b.desde?-1:(a.desde>b.desde?1:0));let v=h.length?round2(Number(h[h.length-1].importe)||0):0;
+  /* v49: el mes del alta se paga solo por los días de alta (cuota ÷ 30 × días) */
+  const a=String((db.empresa||{}).altaFecha||'');if(v&&a.slice(0,7)===m){const d=Number(a.slice(8,10))||1,dim=new Date(Number(m.slice(0,4)),Number(m.slice(5,7)),0).getDate();v=round2(v*Math.min(30,dim-d+1)/30)}return v}
+/* v49: tarifa plana (art. 38 ter Ley 20/2007): 12 meses de cuota fija sin regularización; otros 12 si el beneficio del primer año no supera el límite (salario mínimo) */
+function tpIni(){const e=db.empresa||{};return e.tarifaPlana&&e.altaFecha?String(e.altaFecha).slice(0,7):''}
+function tpLimite(){return Number((db.empresa||{}).limiteTP)||17094}
+function tpBeneficio(ini,fin){return fin<ini?0:recorreMeses(ini,fin,beneficioMes)}
+function enTarifaPlana(m){const ini=tpIni();if(!ini||m<ini)return false;const n=mesesEntre(ini,m);if(n<=12)return true;if(n<=24)return tpBeneficio(ini,mesDesplazado(ini,11))<tpLimite();return false}
+function tarifaPlanaCard(){const ini=tpIni();if(!ini)return '';const e=db.empresa,fin=mesDesplazado(ini,11),cur=currentYM(),lim=tpLimite();
+  const hasta=cur<fin?cur:fin,n=cur<ini?0:mesesEntre(ini,hasta),acum=cur<ini?0:tpBeneficio(ini,hasta),pct=lim>0?acum/lim:0,cls=pct>=1?'r':(pct>=.8?'o':'ok');
+  const c=(e.cuotasAutonomo||[]).slice().sort((a,b)=>a.desde<b.desde?-1:1).pop(),cuota=c?Number(c.importe)||0:0;
+  let txt;if(cur>fin)txt=acum<lim?'<b class="ok">Primer año cerrado por debajo del límite</b> · se puede pedir la prórroga de otros 12 meses':'<b class="r">Primer año cerrado por encima del límite</b> · sin prórroga: se cotiza por tramos';
+  else{const ritmo=n?acum/n*12:0;txt='<b class="'+cls+'">'+(acum<=lim?'Te quedan '+money(lim-acum):'Límite superado en '+money(acum-lim))+'</b> · '+(12-n)+' mes'+(12-n===1?'':'es')+' de tarifa plana por delante'+(n?' · a este ritmo terminarías el año en unos '+money(Math.round(ritmo)):'')}
+  return '<div class="dsh-card dsh-full"><div class="dsh-card-head"><div><h3>Tarifa plana · límite del primer año</h3></div><span class="dsh-pill">Alta '+date(e.altaFecha)+'</span></div><div class="tp-cifra">'+money(acum)+' <small>de '+money(lim)+'</small></div><div class="tp-barra"><i class="'+cls+'" style="width:'+Math.min(100,Math.max(0,pct*100)).toFixed(1)+'%"></i></div><div class="smallnote tp-txt">'+txt+'</div>'+(enTarifaPlana(cur)?'<div class="smallnote" style="margin-top:6px">Seguridad Social: cuota fija '+money(cuota)+' · nada que apartar</div>':'')+'</div>'}
 function beneficioMes(m){return round2(baseFacturadaMes(m)-costeMaterialesMes(m)-gastosMes(m)-cuotaAutonomoMes(m))}
 function sumaAnioHasta(m,fn){let t=0;for(let i=1;i<=Number(m.slice(5,7));i++)t+=fn(m.slice(0,4)+'-'+String(i).padStart(2,'0'));return round2(t)}
 function beneficioAcumAnio(m){return sumaAnioHasta(m,beneficioMes)}
@@ -860,7 +881,7 @@ function inicioActividadAnio(y){if(!hayCuotaSS())return null;const c=db.empresa.
 function recorreMeses(a,b,fn){let t=0,x=a,g=0;while(x<=b&&g<1200){t+=fn(x);x=mesDesplazado(x,1);g++}return round2(t)}
 function ssRendimientoMensual(m){const y=m.slice(0,4),ini=inicioActividadAnio(y);if(!ini||m<ini)return 0;const n=mesesEntre(ini,m);const real=recorreMeses(ini,m,beneficioSinCuotaMes)/n;const prev=previsionAnio(y);let prevM=0;if(prev>0){prevM=(prev+recorreMeses(ini,y+'-12',cuotaAutonomoMes))/mesesEntre(ini,y+'-12')}return round2(Math.max(real,prevM))}
 function ssCuotaTeoricaMes(m){const ini=inicioActividadAnio(m.slice(0,4));if(!ini||m<ini)return 0;return round2(Number(tramoSS(ssRendimientoMensual(m))[2])*tipoSS()/100)}
-function ssAcumAnio(m){const y=m.slice(0,4),ini=inicioActividadAnio(y);if(!ini||m<ini)return 0;const teo=ssCuotaTeoricaMes(m);return recorreMeses(ini,m,k=>Math.max(0,teo-cuotaAutonomoMes(k)))}
+function ssAcumAnio(m){const y=m.slice(0,4),ini=inicioActividadAnio(y);if(!ini||m<ini)return 0;const teo=ssCuotaTeoricaMes(m);return recorreMeses(ini,m,k=>enTarifaPlana(k)?0:Math.max(0,teo-cuotaAutonomoMes(k)))}
 function ssReservaMes(m){const prev=Number(m.slice(5,7))===1?0:ssAcumAnio(mesDesplazado(m,-1));return round2(ssAcumAnio(m)-prev)}
 function ssPagosMes(m){return round2((db.ssPagos||[]).filter(x=>ym(x.fecha)===m).reduce((a,x)=>a+Number(x.importe||0),0))}
 function ssPagosTotal(){return round2((db.ssPagos||[]).reduce((a,x)=>a+Number(x.importe||0),0))}
@@ -1243,24 +1264,25 @@ function dashboard(){
   if(!eventos.length)actividad='<div class="empty">Sin actividad todavía.</div>';
 
   const G=[
-    ['factura','Factura','green','receipt',[['Nueva factura','modalFactura()'],['Lista de facturas',"go('facturas')"]],'left'],
-    ['cobro','Cobro','orange','coin',[['Nuevo cobro','modalCobro()'],['Lista de cobros',"go('cobros')"]],'left'],
-    ['presupuesto','Presupuesto','blue','file',[['Nuevo presupuesto','modalPresupuesto()'],['Lista de presupuestos',"go('presupuestos')"]],'left'],
-    ['campo','Presupuestos en campo','orange','file',"go('campo')",'left'],
-    ['trabajo','Trabajo','purple','tool',[['Nuevo trabajo','modalTrabajo()'],['Lista de trabajos',"go('trabajos')"],['Trabajos de campo',"go('campotrab')"]],'left'],
-    ['gasto','Gasto','pink','wallet',[['Nuevo gasto','modalGasto()'],['Lista de gastos',"go('gastos')"]],'right'],
-    ['compra','Compra','green','cart',[['Nueva compra','modalCompra()'],['Lista de compras',"go('compras')"]],'right'],
+    ['presupuesto','Presupuestos','blue','file',[['Nuevo presupuesto','modalPresupuesto()'],['Lista de presupuestos',"go('presupuestos')"],['Presupuestos en campo',"go('campo')"]],'right'],
+    ['trabajo','Trabajos','purple','tool',[['Nuevo trabajo','modalTrabajo()'],['Lista de trabajos',"go('trabajos')"],['Trabajos de campo',"go('campotrab')"]],'right'],
+    ['factura','Facturas','green','receipt',[['Nueva factura','modalFactura()'],['Lista de facturas',"go('facturas')"]],'right'],
+    ['cobro','Cobros','orange','coin',[['Nuevo cobro','modalCobro()'],['Lista de cobros',"go('cobros')"]],'right'],
+    ['gasto','Gastos','pink','wallet',[['Nuevo gasto','modalGasto()'],['Lista de gastos',"go('gastos')"]],'right'],
+    ['compra','Compras','green','cart',[['Nueva compra','modalCompra()'],['Lista de compras',"go('compras')"],['Importar facturas de compra','icIniciar()']],'right'],
+    ['material','Materiales','cyan','box',[['Nuevo material','modalMaterial()'],['Lista de materiales',"go('materiales')"]],'right'],
     ['hacienda','Hacienda y SS','purple','percent',[['Ver resumen de IVA',"go('resumeniva')"],['Ver IRPF a apartar',"go('resumenirpf')"],['Ver Seguridad Social',"go('resumenss')"],['Ver mínimos de mano de obra',"go('minimos')"],['Registrar pago de IVA','modalIvaPago()'],['Registrar pago de IRPF','modalIrpfPago()'],['Registrar pago de Seguridad Social','modalSsPago()'],['Configuración fiscal',"go('configfiscal')"]],'right']
   ];
   const globos=G.map(g=>typeof g[4]==='string'?'<div class="globo" id="gl_'+g[0]+'"><button type="button" class="btn '+g[2]+'" onclick="'+g[4]+'">'+ico(g[3])+g[1]+'</button></div>':'<div class="globo" id="gl_'+g[0]+'"><button type="button" class="btn '+g[2]+'" onclick="toggleGlobo(\'gl_'+g[0]+'\',event)">'+ico(g[3])+g[1]+' <span class="chev">▾</span></button>'+popHtml(g[4],g[5])+'</div>').join('');
 
   let html='<div class="dsh-topbar">'+
     '<div class="dsh-left">'+dashLogoSVG()+'<div class="dsh-date"><b>'+esc(fechaTxt)+'</b></div></div>'+
-    '<div class="dsh-right"><div class="dsh-actions">'+globos+'</div>'+iconoAspecto()+'<button type="button" class="gear" aria-label="Menú y ajustes" onclick="go(\'menu\')">'+ico('gear')+'</button></div>'+
-  '</div>';
+    '<div class="dsh-right">'+iconoAspecto()+'<button type="button" class="gear" aria-label="Menú y ajustes" onclick="go(\'menu\')">'+ico('gear')+'</button></div>'+
+  '</div><div class="dsh-actions dsh-fila">'+globos+'</div>';
 
-  html+='<div class="dsh-card dsh-full"><div class="dsh-card-head"><div><h3>Alertas</h3></div></div><div class="dsh-alerts grid">'+alertas+'</div></div>';
+  const nAl=(alertas.match(/class="dot [roy]"/g)||[]).length;html+='<div class="dsh-card dsh-full dsh-alertas"><div class="dsh-card-head"><div><h3>Alertas'+(nAl?'<span class="al-tot">'+nAl+'</span>':'')+'</h3></div></div><div class="dsh-alerts grid">'+alertas+'</div></div>';
   html+='<div class="dsh-card dsh-full"><div class="dsh-card-head"><div><h3>Actividad reciente</h3></div></div><div class="dsh-act">'+actividad+'</div></div>';
+  html+=tarifaPlanaCard();
   html+='<div class="mini-grid">'+
     dashMiniCard('file','i-blue','Facturado mes',money(factMes),dFact.t,dFact.c,sparkFact,'#2563eb',"go('facturas')")+
     dashMiniCard('coin','i-green','Cobrado mes',money(cobMes),dCob.t,dCob.c,sparkCob,'#16a34a',"go('cobros')")+
@@ -1589,6 +1611,7 @@ function saveCfIva(){const v=val('cf_iva');if(v===''||!isFinite(Number(v))||Numb
 function saveCfIrpf(){const v=val('cf_irpf');if(v===''||!isFinite(Number(v))||Number(v)<0||Number(v)>100){alert('El IRPF tiene que ser un porcentaje entre 0 y 100.');return}db.empresa.irpf=Number(v);window._cf=null;alert('IRPF guardado.');save()}
 function saveCfMinimo(){const v=val('cf_minimo');if(v===''||!isFinite(Number(v))||Number(v)<0){alert('El mínimo personal no es válido.');return}db.empresa.minimoPersonal=Number(v);window._cf=null;alert('Mínimo personal guardado.');save()}
 function saveCfCuota(){const imp=val('cf_cuota');if(imp===''||!isFinite(Number(imp))||Number(imp)<0){alert('La cuota de autónomo no es válida.');return}const d=ym(val('cf_cuota_desde')||'')||'2026-11',v=round2(Number(imp));let cuotas=(db.empresa.cuotasAutonomo||[]).map(x=>({...x}));const u=cuotas.slice().sort((a,b)=>a.desde<b.desde?-1:1).pop();if(!u||u.desde!==d||Number(u.importe)!==v){cuotas=cuotas.filter(x=>x.desde!==d);cuotas.push({desde:d,importe:v});cuotas.sort((a,b)=>a.desde<b.desde?-1:1)}db.empresa.cuotasAutonomo=cuotas;window._cf=null;alert('Cuota guardada.');save()}
+function saveCfTP(){db.empresa.tarifaPlana=val('cf_tp')==='si';db.empresa.altaFecha=val('cf_alta')||'';const l=Number(val('cf_lim'));db.empresa.limiteTP=l>0?l:17094;save()}
 function configFiscal(){cfInit();const E=db.empresa;const h=(E.cuotasAutonomo||[]).slice().sort((a,b)=>a.desde<b.desde?-1:1);const u=h[h.length-1];
   const sec=(tit,expl,cuerpo)=>'<div class="section"><h3>'+tit+'</h3><div class="smallnote" style="margin-bottom:10px">'+expl+'</div>'+cuerpo+'</div>';
   const guardar=f=>'<div class="field"><label>&nbsp;</label><button type="button" class="btn primary" onclick="'+f+'">Guardar</button></div>';
@@ -1596,6 +1619,7 @@ function configFiscal(){cfInit();const E=db.empresa;const h=(E.cuotasAutonomo||[
    sec('IVA','Porcentaje de IVA que se aplica por defecto en presupuestos y facturas.','<div class="formgrid"><div class="field"><label>IVA (%)</label><input id="cf_iva" type="number" min="0" step="0.01" value="'+Number(E.iva??21)+'"></div>'+guardar('saveCfIva()')+'</div>')+
    sec('IRPF','Porcentaje que se aparta cada trimestre sobre el beneficio acumulado del año (pago fraccionado, modelo 130). Lo habitual es 20 %.','<div class="formgrid"><div class="field"><label>IRPF del pago trimestral (%)</label><input id="cf_irpf" type="number" min="0" step="0.01" value="'+Number(E.irpf||0)+'"></div>'+guardar('saveCfIrpf()')+'</div>')+
    sec('Cuota de autónomo','Lo que pagas cada mes a la Seguridad Social. Se descuenta sola de tu ganancia y de tu dinero disponible cada mes, desde el mes que indiques.','<div class="formgrid"><div class="field"><label>Cuota mensual (€)</label><input id="cf_cuota" type="number" min="0" step="0.01" value="'+(u?u.importe:'')+'" placeholder="Ej.: 294"></div><div class="field"><label>Se paga desde el mes de</label><input id="cf_cuota_desde" type="date" value="'+(u?u.desde:'2026-11')+'-01"></div>'+guardar('saveCfCuota()')+'</div>'+(h.length?'<div class="smallnote" style="margin-top:8px">Histórico: '+h.map(x=>esc(monthLabel(x.desde))+' → '+money(x.importe)).join(' · ')+'. Si cambias el importe, vale desde el mes indicado y los meses anteriores no se tocan.</div>':'<div class="smallnote" style="margin-top:8px">Por defecto, desde tu alta en noviembre de 2026.</div>'))+
+   sec('Tarifa plana','Cuota reducida de la primera alta: 12 meses sin regularización, ampliable otros 12 si el beneficio del primer año no supera el límite (salario mínimo anual). El mes del alta se paga solo por los días de alta.','<div class="formgrid"><div class="field"><label>Tengo tarifa plana</label><select id="cf_tp"><option value="si" '+(E.tarifaPlana?'selected':'')+'>Sí</option><option value="no" '+(E.tarifaPlana?'':'selected')+'>No</option></select></div><div class="field"><label>Fecha de alta</label><input id="cf_alta" type="date" value="'+esc(E.altaFecha||'')+'"></div><div class="field"><label>Límite de beneficio del primer año (€)</label><input id="cf_lim" type="number" min="0" step="any" value="'+tpLimite()+'"></div>'+guardar('saveCfTP()')+'</div>')+
    sec('Seguridad Social — tipo de cotización','Porcentaje total que se paga sobre la base de cotización (contingencias comunes y profesionales, MEI, cese de actividad y formación). Con 31,5 % vas por el lado prudente.','<div class="formgrid"><div class="field"><label>Tipo de cotización (%)</label><input id="cf_tipoSs" type="number" min="0" step="0.01" value="'+tipoSS()+'"></div>'+guardar('saveCfTipoSs()')+'</div>')+
    sec('Mínimo personal','Parte de tu ganancia anual que no paga IRPF. Se descuenta del impuesto calculado con las tablas de abajo. Por defecto 5.550 €.','<div class="formgrid"><div class="field"><label>Mínimo personal (€ al año)</label><input id="cf_minimo" type="number" min="0" step="any" value="'+Number(E.minimoPersonal||0)+'"></div>'+guardar('saveCfMinimo()')+'</div>')+
    sec('IRPF estatal — tramos','Se divide tu ganancia anual en tramos. A la parte que cae dentro de cada tramo se le aplica su porcentaje; no se paga ese porcentaje por todo, solo por lo que entra en el tramo.','<div id="cf_tabla_est">'+cfTablaHtml('est')+'</div>')+
