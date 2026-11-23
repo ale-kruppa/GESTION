@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Manual · App de presupuestos y trabajos</title>
+<style>
+:root{color-scheme:light dark;--fondo:light-dark(#f2f2f7,#000);--grupo:light-dark(#fff,#1c1c1e);--txt:light-dark(#1d1d1f,#f5f5f7);--sec:light-dark(#6e6e73,#98989d);--linea:light-dark(#e5e5ea,#38383a);--azul:light-dark(#007aff,#0a84ff);--verde:light-dark(#1f8a3b,#30d158);--naranja:light-dark(#b45309,#ffb340);--rojo:light-dark(#d70015,#ff453a)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--fondo);color:var(--txt);font:16px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.w{max-width:760px;margin:0 auto;padding:28px 16px 80px}
+header h1{font-size:32px;line-height:1.15;letter-spacing:-.02em;margin:0 0 6px}header p{color:var(--sec);margin:0 0 22px}
+h2{font-size:24px;letter-spacing:-.01em;margin:40px 0 10px;scroll-margin-top:16px}
+h3{font-size:18px;margin:24px 0 8px}
+p{margin:0 0 12px}
+.caja{background:var(--grupo);border-radius:14px;padding:16px 18px;margin:12px 0}
+.indice{background:var(--grupo);border-radius:14px;overflow:hidden}
+.indice a{display:flex;justify-content:space-between;padding:12px 16px;color:var(--txt);text-decoration:none;border-top:.5px solid var(--linea)}.indice a:first-child{border-top:0}.indice a span{color:var(--sec)}
+ol,ul{margin:0 0 12px;padding-left:22px}li{margin:5px 0}
+.paso{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:.5px solid var(--linea)}.paso:first-child{border-top:0;padding-top:2px}
+.num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--azul);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.paso b{display:block}
+table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;color:var(--sec);font-size:12px;text-transform:uppercase;letter-spacing:.03em;font-weight:600;padding:6px 8px;border-bottom:.5px solid var(--linea)}td{padding:8px;border-bottom:.5px solid var(--linea);vertical-align:top}tr:last-child td{border-bottom:0}
+.chip{display:inline-block;font-size:12.5px;font-weight:600;padding:2px 9px;border-radius:10px;white-space:nowrap}
+.c-borr{background:light-dark(#fff4e5,#3a2a10);color:var(--naranja)}.c-cur{background:light-dark(#fff1e0,#3a2508);color:var(--naranja)}.c-cer{background:light-dark(#e5f0ff,#10294d);color:var(--azul)}.c-env{background:light-dark(#e8f5ec,#12301c);color:var(--verde)}
+.boton{display:inline-block;color:var(--azul);font-weight:600}
+.nota{border-left:3px solid var(--azul);padding:4px 0 4px 12px;color:var(--sec);margin:12px 0}
+.aviso{border-left:3px solid var(--naranja);padding:4px 0 4px 12px;margin:12px 0}
+.icono{display:inline-flex;vertical-align:-4px}
+footer{color:var(--sec);font-size:13px;margin-top:48px;text-align:center}
+@media print{:root{color-scheme:light}body{background:#fff;font-size:12pt}.w{max-width:none;padding:0}.caja,.indice{border:1px solid #ddd}h2{page-break-after:avoid;margin-top:26px}.caja,table,.paso{page-break-inside:avoid}a{color:inherit;text-decoration:none}}
+</style></head><body><div class="w">
+
+<header><h1>App de presupuestos y trabajos</h1><p>Manual de uso · versión 9 de la app</p></header>
+
+<nav class="indice">
+<a href="#que-es">1. Qué es la app <span>›</span></a>
+<a href="#empezar">2. Instalarla y conectarla <span>›</span></a>
+<a href="#inicio">3. Pantalla de inicio <span>›</span></a>
+<a href="#presupuesto">4. Hacer un presupuesto <span>›</span></a>
+<a href="#plantillas">5. Las plantillas <span>›</span></a>
+<a href="#materiales">6. Materiales: elegir, cambiar y quitar <span>›</span></a>
+<a href="#trabajo">7. Hacer un trabajo con firma <span>›</span></a>
+<a href="#gestion">8. Qué pasa en gestión <span>›</span></a>
+<a href="#ajustes">9. Ajustes <span>›</span></a>
+<a href="#dudas">10. Dudas frecuentes <span>›</span></a>
+</nav>
+
+<h2 id="que-es">1. Qué es la app</h2>
+<p>Es la herramienta para trabajar <b>en la obra</b>. Sirve para dos cosas:</p>
+<ul>
+<li><b>Presupuestos estimados:</b> se preparan en el momento, se calcula el importe con tus materiales y precios, y se envía un PDF al cliente.</li>
+<li><b>Trabajos (partes de trabajo):</b> se registra lo que se ha hecho, con materiales, fotos y la <b>firma del cliente</b>, y se le envía el parte en PDF.</li>
+</ul>
+<p>Usa los clientes y los materiales de la app de gestión. Lo que se cierra en el móvil pasa solo a gestión.</p>
+
+<h2 id="empezar">2. Instalarla y conectarla</h2>
+<div class="caja">
+<div class="paso"><div class="num">1</div><div><b>Abrir la dirección</b>En el iPhone, abre Safari y entra en <b>ale-kruppa.github.io/GESTION/presupuestos/</b></div></div>
+<div class="paso"><div class="num">2</div><div><b>Añadir a la pantalla de inicio</b>Toca el botón de compartir de Safari y elige <b>«Añadir a pantalla de inicio»</b>. Desde ese momento se abre como una app más.</div></div>
+<div class="paso"><div class="num">3</div><div><b>Conectar</b>La primera vez pide la <b>dirección de Google</b> (empieza por https://script.google.com/…) y la <b>clave de la app de presupuestos</b> (empieza por P). Son las mismas que se usan en gestión; la clave de gestión no sirve aquí.</div></div>
+</div>
+<p class="nota">Cada móvil se conecta una sola vez. Los datos (clientes, materiales y precios) se actualizan solos.</p>
+
+<h2 id="inicio">3. Pantalla de inicio</h2>
+<ul>
+<li><b>Nuevo presupuesto</b> (azul) y <b>Nuevo trabajo</b> (naranja).</li>
+<li><b>Documentos recientes:</b> los últimos presupuestos y trabajos. Tócalos para abrirlos.</li>
+<li>Arriba a la derecha: <b>Ajustes</b> y el icono de aspecto <span class="icono"><svg width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="currentColor"/><circle cx="12" cy="12" r="8.4" fill="var(--fondo)"/><path d="M12 5.4a6.6 6.6 0 0 1 0 13.2z" fill="currentColor"/></svg></span>, que cambia entre claro y oscuro.</li>
+</ul>
+<h3>Estados de cada documento</h3>
+<div class="caja"><table>
+<tr><td><span class="chip c-borr">Borrador</span></td><td>Se está preparando. Solo está en este móvil y se puede cambiar o eliminar.</td></tr>
+<tr><td><span class="chip c-cur">En curso</span></td><td>Solo trabajos: quedó algo pendiente. Ya está en gestión para su seguimiento y se puede seguir completando.</td></tr>
+<tr><td><span class="chip c-cer">Cerrado</span></td><td>Terminado. Ya está en gestión y no se puede modificar desde el móvil.</td></tr>
+<tr><td><span class="chip c-env">Enviado</span></td><td>Cerrado y enviado al cliente.</td></tr>
+</table></div>
+
+<h2 id="presupuesto">4. Hacer un presupuesto</h2>
+<p>Se rellena de arriba hacia abajo. En cada pantalla: <b>‹ Atrás</b> arriba a la izquierda y <b>Siguiente ›</b> abajo a la derecha. Todo se guarda solo.</p>
+<div class="caja">
+<div class="paso"><div class="num">1</div><div><b>Cliente</b>Busca por nombre, teléfono o NIF entre tus clientes, fincas y administraciones. Si no está, escribe el nombre, el teléfono y la dirección; el botón <b>GPS</b> rellena la dirección del sitio donde estás. «Hecho por» es opcional.</div></div>
+<div class="paso"><div class="num">2</div><div><b>Trabajos</b>Activa los trabajos que lleva el presupuesto: Solar, Cargador de coche, Cambio o reforma de cuadro, Contadores o Libre. Se pueden activar varios a la vez.</div></div>
+<div class="paso"><div class="num">3</div><div><b>Una pantalla por cada trabajo</b>Responde a las preguntas (ver <a href="#plantillas">apartado 5</a>). Debajo aparecen los <b>materiales</b> calculados solos, la <b>mano de obra</b> (descripción e importe), las <b>observaciones</b> y el <b>subtotal</b>.</div></div>
+<div class="paso"><div class="num">4</div><div><b>Fotos</b><b style="display:inline">Cámara</b> abre la cámara; <b style="display:inline">Fotos</b> y <b style="display:inline">Archivos</b> permiten elegir fotos ya hechas.</div></div>
+<div class="paso"><div class="num">5</div><div><b>Resumen</b>Muestra cada trabajo con sus materiales y mano de obra, la base, el IVA y el total. Avisa si hay materiales sin elegir.</div></div>
+</div>
+<h3>Cerrar y enviar</h3>
+<ol>
+<li><b>Vista previa del PDF:</b> para revisar cómo queda. Lleva abajo «BORRADOR — no enviar». La primera pulsación lo genera y la segunda lo abre.</li>
+<li><b>Cerrar presupuesto:</b> pide confirmación. Al cerrarlo pasa a gestión y ya no se puede modificar desde el móvil.</li>
+<li><b>Generar PDF</b> y después <b>Enviar al cliente</b>: se abre el menú de compartir (WhatsApp, correo…) y queda marcado como enviado. Si se envió de otra forma, usa <b>Marcar como enviado</b>.</li>
+</ol>
+<h3>Qué ve el cliente en el PDF</h3>
+<p>Tu cabecera (nombre, NIF, logo y datos), el cliente, la fecha, «Válido 15 días» y, por cada trabajo, solo <b>Materiales</b> (un importe total), <b>Mano de obra</b> con su descripción y el <b>Subtotal</b>. Al final, base imponible, IVA y total estimado. <b>No aparece el detalle de materiales.</b></p>
+
+<h2 id="plantillas">5. Las plantillas</h2>
+<p>Cada plantilla pregunta lo justo y suma sola los materiales de siempre. Elige automáticamente, de tu lista, el material más barato que encaja.</p>
+
+<h3>Cargador de coche</h3>
+<div class="caja"><table>
+<tr><th>Pregunta</th><th>Qué suma sola</th></tr>
+<tr><td>Cargador (de tu lista)<br>Mono o Tri<br>Metros de tubo y curvas<br>Sección 6 o 10 mm²<br>Cuadro para el cargador (Sí/No)<br>Boletín / legalización (importe)</td><td>
+<ul style="margin:0;padding-left:18px">
+<li>Cuadro de 8 bocas (mono) o 12 (tri), si lo marcas</li>
+<li>Diferencial 40 A 30 mA (2 o 4 polos)</li>
+<li>Magnetotérmico de 25 A (6 mm²) o 32 A (10 mm²)</li>
+<li>Tubos de 32 mm (3 m), uniones, curvas y grapas cada 50 cm</li>
+<li>Cable de cada color: 3 en mono, 5 en tri</li>
+<li>Cable de red UTP para los toroides</li>
+<li>4 tacos y 4 tornillos de 8 mm; tacos y tornillos de 6 mm para cuadro y grapas</li></ul></td></tr></table>
+<p class="nota" style="margin-bottom:0">Largo de cada cable = metros de tubo + 0,40 m por curva + 1 m de sobrante.</p></div>
+
+<h3>Cambio o reforma de cuadro</h3>
+<div class="caja"><table>
+<tr><th>Pregunta</th><th>Qué suma sola</th></tr>
+<tr><td>Magnetotérmicos de 10, 16, 20, 25 y 32 A (y otros)<br>Diferenciales de 30 y 300 mA (y otros)<br>Cuadro nuevo (Sí/No) y módulos<br>DI: sección y metros</td><td>
+<ul style="margin:0;padding-left:18px">
+<li>Cada magnetotérmico y diferencial</li>
+<li>Cuadro, y 4 tacos y 4 tornillos de 6 mm (si es nuevo)</li>
+<li>Peines: uno por fila (uno si se reaprovecha el cuadro)</li>
+<li>Punteras según el calibre: 10 A → 1,5 · 16 A → 2,5 · 20 A → 4 · 25 A → 6 · 32 A y diferenciales → 10 mm²</li>
+<li>Cable de la DI</li></ul></td></tr></table></div>
+
+<h3>Contadores</h3>
+<div class="caja"><table>
+<tr><th>Pregunta</th><th>Qué suma sola</th></tr>
+<tr><td>CGP: Mono/Tri, V1/V2, esquema, intensidad, acometida y sección<br>LGA: material, sección, si se cambia y metros<br>Contadores mono y tri, armario, terminales, tacos<br>Puesta a tierra (Sí/No)<br>DI por piso</td><td>
+<ul style="margin:0;padding-left:18px">
+<li>CGP con 2+2 terminales (mono) o 4+4 (tri), bimetálicos si es aluminio</li>
+<li>Cable LGA y terminales del seccionador</li>
+<li>Armario de contadores</li>
+<li>Terminales: 6 por contador monofásico y 12 por trifásico</li>
+<li>Tacos y tornillos de 8 mm</li>
+<li>Sin puesta a tierra: pica, brida para pica y el cable indicado</li>
+<li>Cable de las DI por sección</li></ul></td></tr></table></div>
+
+<h3>Solar</h3>
+<div class="caja"><table>
+<tr><th>Pregunta</th><th>Qué suma sola</th></tr>
+<tr><td>Panel y cantidad, strings, clamps finales e intermedios<br>Tri, Mono o Sin inversor; inversor, ITA y batería<br>Metros de tubo, curvas y metros extra por los paneles<br>Canaleta y accesorios<br>Alterna: distancia y sección 6/10/16<br>¿Tiene pica de tierra?</td><td>
+<ul style="margin:0;padding-left:18px">
+<li>Por panel: 1 perfil, 1 varilla de 1 m (3 trozos de 30 cm), 3 tacos de anclaje, 6 tuercas y 6 arandelas</li>
+<li>Cable solar rojo y negro por string, cable de tierra de 6 mm² y una bolsa de bridas</li>
+<li>Tubo, uniones, curvas y grapas</li>
+<li>Canaleta en tramos de 2 m (4 tacos por metro)</li>
+<li>Alterna: 5 cables (tri) o 3 (mono) y cable UTP</li>
+<li>Por string: 2 portafusibles, 1 fusible y 1 cartucho de neutro</li>
+<li>Cuadros de continua y alterna, 2 magnetotérmicos y 1 diferencial</li>
+<li>50 punteras de 6 mm²; tacos y tornillos de 8 mm (inversor y batería) y de 6 mm</li>
+<li>Sin pica: pica, brida y cable de tierra</li></ul></td></tr></table>
+<p class="nota" style="margin-bottom:0">Sin inversor (ampliación de paneles) no suma cuadros, protecciones, canaleta, alterna ni UTP. Los strings no pueden superar a los paneles. El taco químico se añade a mano.</p></div>
+
+<h3>Libre</h3>
+<div class="caja">Sin preguntas: se añaden los materiales uno a uno, la mano de obra y, si se quiere, un <b>«Total que quieres poner»</b>. La diferencia con el total calculado se suma o se resta a la mano de obra.</div>
+
+<h2 id="materiales">6. Materiales: elegir, cambiar y quitar</h2>
+<ul>
+<li><b>Material en azul con «Toca para elegir»:</b> no se encontró en tu lista. Tócalo y elígelo; mientras tanto no suma.</li>
+<li><b>Cambiar un material:</b> tócalo y elige otro de la lista, o usa <b>Introducir manualmente</b> con su precio.</li>
+<li><b>Volver a la elección automática:</b> en la misma ventana, si lo habías cambiado.</li>
+<li><b>Quitar este material:</b> desaparece de la lista y deja de sumar. Para recuperarlo: <b>Restaurar materiales quitados</b>, al final de la lista.</li>
+<li><b>Añadir de mis materiales</b> o <b>Añadir manualmente</b>: para todo lo que no está en la plantilla.</li>
+</ul>
+<p class="nota">Los materiales introducidos manualmente llegan a gestión marcados como «manual» para revisarlos.</p>
+
+<h2 id="trabajo">7. Hacer un trabajo con firma</h2>
+<div class="caja">
+<div class="paso"><div class="num">1</div><div><b>Cliente</b>Igual que en el presupuesto, más la <b>fecha</b> y la <b>hora</b> (se ponen solas), la <b>dirección del trabajo</b> (con GPS) y <b>Realizado por</b>.</div></div>
+<div class="paso"><div class="num">2</div><div><b>Trabajo</b>Descripción del trabajo realizado y <b>materiales utilizados sin precio</b>, con su cantidad: de tu lista o introducidos manualmente.</div></div>
+<div class="paso"><div class="num">3</div><div><b>Estado</b>¿Trabajo finalizado? <b>Sí</b> o <b>No</b>. Si queda algo pendiente, se explica en <b>Observaciones</b>. Aquí también van las fotos.</div></div>
+<div class="paso"><div class="num">4</div><div><b>Firma</b>Nombre y DNI de quien firma y la firma con el dedo en el recuadro. «Borrar y repetir» si sale mal.</div></div>
+<div class="paso"><div class="num">5</div><div><b>Resumen</b>Vista previa del parte, <b>Cerrar trabajo</b> y, después, <b>Enviar al cliente</b>.</div></div>
+</div>
+<div class="aviso"><b>Trabajo sin terminar:</b> si en «¿Trabajo finalizado?» pones No, no se puede cerrar. Se envía a gestión como <span class="chip c-cur">En curso</span> y se puede completar otro día. Cuando esté terminado, se marca Sí, firma el cliente y se cierra.</div>
+<p>Para cerrar un trabajo hace falta la firma y el nombre de quien firma. El parte en PDF lleva la descripción, los materiales con cantidades, las observaciones, las fotos y la firma.</p>
+
+<h2 id="gestion">8. Qué pasa en gestión</h2>
+<ul>
+<li><b>Presupuestos cerrados</b> → aparecen en <b>Presupuestos en campo</b>, para revisarlos y pasarlos a presupuesto oficial.</li>
+<li><b>Trabajos</b> → aparecen en <b>Trabajos de campo</b>. Los cerrados se registran como trabajo con un botón (llegan con materiales, fotos y firma) para facturarlos.</li>
+<li><b>Alertas</b> en el inicio de gestión: presupuestos de campo por revisar, trabajos sin finalizar y trabajos cerrados por registrar.</li>
+<li>Cualquier <b>cambio o eliminación</b> de un documento cerrado se hace desde gestión.</li>
+</ul>
+
+<h2 id="ajustes">9. Ajustes</h2>
+<ul>
+<li><b>IVA por defecto:</b> 21 %. Se aplica a los presupuestos nuevos.</li>
+<li><b>Aspecto:</b> Automático (según el móvil), Claro u Oscuro.</li>
+<li><b>Actualizar ahora:</b> trae al momento los últimos clientes, materiales y precios de gestión.</li>
+<li><b>Desconectar este dispositivo</b> y la <b>versión</b> de la app (abajo).</li>
+</ul>
+
+<h2 id="dudas">10. Dudas frecuentes</h2>
+<div class="caja">
+<p><b>¿Funciona sin internet?</b><br>Sí. Todo se guarda en el móvil y se envía a gestión en cuanto vuelve la conexión.</p>
+<p><b>Un material sale «sin elegir».</b><br>No hay en tu lista uno que encaje. Elígelo tocándolo, o añade ese material en gestión para que la próxima vez se elija solo.</p>
+<p><b>Me equivoqué en un presupuesto ya cerrado.</b><br>Se corrige desde gestión, al pasarlo a presupuesto oficial, o se elimina desde allí.</p>
+<p><b>¿Cómo sé qué versión tengo?</b><br>En Ajustes, abajo: «App de presupuestos v9».</p>
+<p style="margin:0"><b>No veo los cambios de una versión nueva.</b><br>Cierra la app del todo y vuelve a abrirla.</p>
+</div>
+
+<footer>App de presupuestos y trabajos · Manual de uso · Noviembre de 2026</footer>
+</div></body></html>
