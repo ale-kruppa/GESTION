@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Manual · Gestión</title>
+<style>
+:root{color-scheme:light dark;--fondo:light-dark(#f2f2f7,#000);--grupo:light-dark(#fff,#1c1c1e);--txt:light-dark(#1d1d1f,#f5f5f7);--sec:light-dark(#6e6e73,#98989d);--linea:light-dark(#e5e5ea,#38383a);--azul:light-dark(#007aff,#0a84ff);--naranja:light-dark(#b45309,#ffb340);--rojo:light-dark(#d70015,#ff453a)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--fondo);color:var(--txt);font:16px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.w{max-width:780px;margin:0 auto;padding:28px 16px 80px}
+header h1{font-size:32px;line-height:1.15;letter-spacing:-.02em;margin:0 0 6px}header p{color:var(--sec);margin:0 0 22px}
+h2{font-size:24px;letter-spacing:-.01em;margin:40px 0 10px;scroll-margin-top:16px}h3{font-size:18px;margin:22px 0 8px}
+p{margin:0 0 12px}
+.caja{background:var(--grupo);border-radius:14px;padding:16px 18px;margin:12px 0}
+.indice{background:var(--grupo);border-radius:14px;overflow:hidden}
+.indice a{display:flex;justify-content:space-between;padding:12px 16px;color:var(--txt);text-decoration:none;border-top:.5px solid var(--linea)}.indice a:first-child{border-top:0}.indice a span{color:var(--sec)}
+ol,ul{margin:0 0 12px;padding-left:22px}li{margin:5px 0}
+.paso{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:.5px solid var(--linea)}.paso:first-child{border-top:0;padding-top:2px}
+.num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--azul);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.paso b.t{display:block}
+.ruta{font-weight:600;color:var(--azul)}
+.nota{border-left:3px solid var(--azul);padding:4px 0 4px 12px;color:var(--sec);margin:12px 0}
+.aviso{border-left:3px solid var(--naranja);padding:4px 0 4px 12px;margin:12px 0}
+footer{color:var(--sec);font-size:13px;margin-top:48px;text-align:center}
+@media print{:root{color-scheme:light}body{background:#fff;font-size:12pt}.w{max-width:none;padding:0}.caja,.indice{border:1px solid #ddd}h2{page-break-after:avoid;margin-top:26px}.caja,.paso{page-break-inside:avoid}a{color:inherit;text-decoration:none}}
+</style></head><body><div class="w">
+
+<header><h1>Gestión</h1><p>Manual de uso · versión 48</p></header>
+
+<nav class="indice">
+<a href="#que-es">1. Qué es la gestión <span>›</span></a>
+<a href="#antes">2. Antes de empezar a facturar <span>›</span></a>
+<a href="#inicio">3. Pantalla de inicio y menú <span>›</span></a>
+<a href="#personas">4. Clientes, fincas y administraciones <span>›</span></a>
+<a href="#materiales">5. Materiales y distribuidores <span>›</span></a>
+<a href="#compras">6. Compras, gastos y retiros <span>›</span></a>
+<a href="#presupuestos">7. Presupuestos <span>›</span></a>
+<a href="#trabajos">8. Trabajos <span>›</span></a>
+<a href="#facturas">9. Facturas <span>›</span></a>
+<a href="#cobros">10. Cobros <span>›</span></a>
+<a href="#hacienda">11. Hacienda, Seguridad Social e informes <span>›</span></a>
+<a href="#copias">12. Copias de seguridad y sincronización <span>›</span></a>
+<a href="#datos">13. Mis datos y aspecto <span>›</span></a>
+<a href="#dudas">14. Dudas frecuentes <span>›</span></a>
+</nav>
+
+<h2 id="que-es">1. Qué es la gestión</h2>
+<p>Es la parte administrativa: clientes, materiales y precios, compras, presupuestos oficiales, trabajos, facturas, cobros, y lo que hay que apartar para Hacienda y la Seguridad Social.</p>
+<p>Funciona en el ordenador y en el móvil, y se mantiene sincronizada con Google. Recibe lo que se hace en la obra con la <b>app de presupuestos</b> (presupuestos estimados y partes de trabajo firmados).</p>
+
+<h2 id="antes">2. Antes de empezar a facturar</h2>
+<div class="caja">
+<div class="paso"><div class="num">1</div><div><b class="t">Revisa tus datos</b><span class="ruta">Menú ⚙ → Mis datos</span>: nombre, <b>NIF</b> (8 números y una letra), dirección, código postal, localidad, teléfono, email, web, <b>IBAN</b> y logo. Es lo que sale en todas las facturas.</div></div>
+<div class="paso"><div class="num">2</div><div><b class="t">Pon una clave de borrado</b>En Mis datos, «Clave para operaciones protegidas». Se pide para eliminar registros, así no se borra nada por error.</div></div>
+<div class="paso"><div class="num">3</div><div><b class="t">Borra los datos de prueba</b><span class="ruta">Menú ⚙ → Copias de seguridad → Empezar de cero → «Borrar todos los movimientos»</span>. Antes descarga una copia. Tus datos de empresa se conservan y puedes elegir si conservar clientes, distribuidores y materiales. Así la primera factura real será la <b>2026-0001</b>.</div></div>
+<div class="paso"><div class="num">4</div><div><b class="t">Haz una copia de seguridad</b>Después de las primeras facturas, y luego con regularidad (la app avisa cuando toca).</div></div>
+</div>
+<p class="aviso">Las facturas se numeran solas y de forma correlativa (año-número). No borres facturas reales: si hay un error, se corrige con otra factura.</p>
+
+<h2 id="inicio">3. Pantalla de inicio y menú</h2>
+<ul>
+<li><b>Botones de arriba:</b> Factura, Cobro, Presupuesto, Presupuestos en campo, Trabajo, Gasto, Compra y Hacienda y SS. Cada uno abre «Nuevo…» o su lista.</li>
+<li><b>Alertas:</b> facturas vencidas, materiales con poco stock o precio nuevo sin revisar, copia de seguridad pendiente, presupuestos y trabajos de campo por revisar, presupuestos aceptados o trabajos sin facturar. Al tocar una alerta se abre lo que corresponde.</li>
+<li><b>Actividad reciente:</b> lo último que se ha hecho.</li>
+<li><b>Cifras del mes:</b> facturado, cobrado, pendiente de cobro, IVA del trimestre, gastos y ganancias.</li>
+<li><b>Para apartar</b>, <b>Mínimos de mano de obra</b> y el <b>gráfico</b> de facturación del mes.</li>
+<li><b>⚙ (ruedita):</b> el menú completo, ordenado en Personas, Catálogo y compras, Facturación, Control y Configuración.</li>
+<li>El icono del <b>círculo partido</b> cambia entre claro y oscuro.</li>
+</ul>
+
+<h2 id="personas">4. Clientes, fincas y administraciones</h2>
+<ul>
+<li><b>Administraciones</b> (administradores de fincas), <b>Comunidades</b> (fincas) y <b>Clientes</b>. Una comunidad puede depender de una administración y un cliente de una comunidad.</li>
+<li>Al hacer un presupuesto, trabajo o factura se busca en cadena: administración → finca → cliente. Se factura al último nivel elegido.</li>
+<li>Los clientes nuevos que llegan de la obra se dan de alta al revisar el presupuesto o el trabajo de campo: la ficha se abre rellena y se completa lo que falta.</li>
+</ul>
+
+<h2 id="materiales">5. Materiales y distribuidores</h2>
+<ul>
+<li><b>Materiales:</b> código, nombre, unidad, precio de compra y de venta, <b>stock</b> y stock mínimo. Si falta stock, el renglón se marca en naranja.</li>
+<li>Un material puede tener <b>varios distribuidores</b>, cada uno con su código y precio, y <b>equivalentes</b> (el mismo producto de otra marca).</li>
+<li><b>Precio nuevo sin revisar:</b> cuando una compra trae otro precio, la app lo avisa y no cambia nada hasta que lo apruebas.</li>
+<li><b>Distribuidores:</b> nombre comercial (el que se ve en las listas), razón social, NIF y contacto. Se pueden cargar <b>catálogos</b> de precios.</li>
+<li>En todos los sitios donde se elige un material se escribe en el <b>buscador</b>: con 2 letras salen los que coinciden (por nombre, tu código o el código del distribuidor). Se elige con el ratón o con las flechas y Enter.</li>
+</ul>
+
+<h2 id="compras">6. Compras, gastos y retiros</h2>
+<h3>Compras</h3>
+<ul>
+<li><b>Nueva compra:</b> distribuidor, material (si no se elige ninguno, se crea uno nuevo), cantidad y precio. La cantidad se suma al stock.</li>
+<li><b>Importar facturas de compra:</b> se eligen los PDF, fotos o Excel de las facturas (varios a la vez). La app lee el distribuidor, el número, la fecha, el total y los renglones. En cada renglón: <b>De mi lista</b> (con buscador), <b>Crear material nuevo</b> o <b>Sin material</b>.</li>
+<li>Si el distribuidor no está cargado, aparece el recuadro <b>«Distribuidor nuevo leído de la factura»</b> con sus datos: revísalos y se crea al guardar.</li>
+</ul>
+<p class="nota">Las facturas escaneadas o en foto pueden leerse con algún error: revisa siempre los importes antes de guardar.</p>
+<h3>Gastos y retiros</h3>
+<ul>
+<li><b>Gastos:</b> combustible, teléfono, herramientas… con su IVA. «Tomar IVA» indica si ese IVA se descuenta.</li>
+<li><b>Retiros:</b> el dinero que sacas para ti.</li>
+</ul>
+
+<h2 id="presupuestos">7. Presupuestos</h2>
+<h3>Presupuesto oficial</h3>
+<ul>
+<li><b>Nuevo presupuesto:</b> cliente, materiales (con el buscador), mano de obra con su descripción, IVA y observaciones. Tiene número (P-0001…).</li>
+<li><b>Estados:</b> pendiente, aceptado o rechazado. Los aceptados sin facturar salen en las alertas.</li>
+<li><b>Ver / Imprimir:</b> abre el documento con tu cabecera; desde ahí se imprime o se guarda en PDF.</li>
+</ul>
+<h3>Presupuestos en campo (PC)</h3>
+<ul>
+<li>Llegan solos de la app cuando se <b>cierran</b> en el móvil.</li>
+<li><b>Revisar y pasar a presupuesto:</b> abre un presupuesto oficial ya relleno. Los materiales sin elegir o manuales vienen marcados para revisar.</li>
+<li>Después: <b>Marcar enviado al cliente</b>, <b>En ejecución</b> o <b>Descartar</b>. A los 15 días sin novedades avisa de llamar al cliente; a los 30, se descarta solo (se puede reactivar).</li>
+<li><b>Borrar:</b> elimina el PC aquí y en los móviles.</li>
+</ul>
+
+<h2 id="trabajos">8. Trabajos</h2>
+<ul>
+<li><b>Nuevo trabajo:</b> cliente, presupuesto relacionado (opcional), fecha, realizado por, trabajo realizado, horas, coste por hora, desplazamiento, materiales y fotos.</li>
+<li><b>Imprimir:</b> parte de trabajo con o sin importes, con espacio para la firma.</li>
+<li><b>Crear factura</b> desde las acciones del trabajo.</li>
+</ul>
+<h3>Trabajos de campo</h3>
+<ul>
+<li>Llegan de la app del móvil. Los que quedaron pendientes llegan como <b>En curso</b> (y salen en las alertas) para hacer el seguimiento.</li>
+<li>Los <b>cerrados</b> llegan firmados por el cliente. <b>Registrar como trabajo</b> abre un trabajo nuevo relleno, con materiales (ya con precio), fotos y firma; solo falta poner horas, precio por hora y desplazamiento.</li>
+<li>El parte de trabajo en PDF lleva la firma del cliente con su nombre y DNI.</li>
+</ul>
+
+<h2 id="facturas">9. Facturas</h2>
+<div class="caja">
+<div class="paso"><div class="num">1</div><div><b class="t">Nueva factura</b>Desde el botón Factura, o con «Crear factura» en un trabajo o presupuesto.</div></div>
+<div class="paso"><div class="num">2</div><div><b class="t">Qué se factura</b>Elige el cliente y los presupuestos aceptados y/o trabajos de ese cliente. Se pueden juntar varios en una factura.</div></div>
+<div class="paso"><div class="num">3</div><div><b class="t">Fechas e importes</b>Fecha de emisión y de vencimiento (30 días por defecto), % de IVA, importe adicional si hace falta y, con IVA 0 %, la mención legal que corresponda.</div></div>
+<div class="paso"><div class="num">4</div><div><b class="t">Ver / Imprimir</b>La factura sale con tu barra de datos, el logo, el cliente, el detalle (materiales y mano de obra con su descripción), la forma de pago con el IBAN y los totales. Si ocupa varias hojas, cada hoja lleva «Factura N · Página X de Y».</div></div>
+</div>
+<p class="nota">Al imprimir, el navegador puede añadir fecha y dirección en los márgenes: desmarca «Encabezados y pies de página» en la ventana de impresión si aparecen.</p>
+
+<h2 id="cobros">10. Cobros</h2>
+<ul>
+<li><b>Nuevo cobro:</b> factura, fecha, importe y medio de pago. Se admiten cobros parciales.</li>
+<li><b>Recibo de cobro:</b> documento con el mismo estilo que la factura.</li>
+<li><b>Pendientes de cobro</b> y <b>Cuentas corrientes:</b> qué debe cada cliente. Las facturas vencidas salen en las alertas.</li>
+</ul>
+
+<h2 id="hacienda">11. Hacienda, Seguridad Social e informes</h2>
+<ul>
+<li><b>Resumen de IVA:</b> IVA repercutido (ventas) menos IVA soportado (compras y gastos), por trimestre. Desde ahí se registra el pago.</li>
+<li><b>IRPF a apartar</b> y <b>Seguridad Social a apartar:</b> lo que conviene ir guardando cada mes, con sus pagos.</li>
+<li><b>Configuración fiscal:</b> % de IVA, IRPF del pago trimestral, cuota de autónomo, tipo de cotización y mínimo personal.</li>
+<li><b>Mínimos de mano de obra:</b> lo mínimo que hay que facturar de mano de obra al mes para cubrir gastos y cuota (punto de equilibrio) y para llegar a tu objetivo neto. En «Automático», los gastos son los reales del mes.</li>
+<li><b>Informes:</b> resumen por meses o trimestres (facturado, cobrado, materiales, gastos, impuestos y ganancia). Se puede imprimir o sacar en Excel.</li>
+</ul>
+
+<h2 id="copias">12. Copias de seguridad y sincronización</h2>
+<ul>
+<li><span class="ruta">Menú ⚙ → Copias de seguridad</span>.</li>
+<li><b>Sincronización con Google:</b> con la dirección y la clave de gestión, todo se mantiene igual en el ordenador y en el móvil. «Sincronizar ahora» fuerza la actualización.</li>
+<li><b>Guardar copia:</b> descarga un archivo con todos los datos. Guárdalo fuera del ordenador (pendrive o nube).</li>
+<li><b>Restaurar copia:</b> vuelve a los datos de un archivo de copia.</li>
+<li><b>Exportar CSV</b> para abrir los datos en una hoja de cálculo.</li>
+<li><b>Empezar de cero:</b> borra todos los movimientos (con copia previa y clave de borrado).</li>
+</ul>
+
+<h2 id="datos">13. Mis datos y aspecto</h2>
+<ul>
+<li><b>Mis datos:</b> datos de empresa, logo, marca de agua, IBAN, clave de borrado y aspecto.</li>
+<li><b>Aspecto:</b> Automático (según el aparato), Claro u Oscuro. También con el icono del círculo partido en la parte de arriba.</li>
+<li><b>Historial:</b> registro de lo modificado y lo borrado.</li>
+</ul>
+
+<h2 id="dudas">14. Dudas frecuentes</h2>
+<div class="caja">
+<p><b>¿Dónde se guardan los datos?</b><br>En el aparato y, con la sincronización activada, también en tu Google. Aun así, haz copias de seguridad.</p>
+<p><b>No me llega un presupuesto o trabajo del móvil.</b><br>Solo llegan los cerrados (y los trabajos pendientes). Comprueba que el móvil tiene internet y pulsa «Sincronizar ahora».</p>
+<p><b>Un material de una compra no se emparejó.</b><br>En el renglón elige «De mi lista» y búscalo. La próxima factura de ese distribuidor lo reconocerá por su código.</p>
+<p><b>¿Qué versión tengo?</b><br>Cuando se abre una versión nueva, la app avisa: «La app se ha actualizado a la versión…».</p>
+<p style="margin:0"><b>No veo los cambios de una versión nueva.</b><br>Cierra la app del todo y vuelve a abrirla.</p>
+</div>
+
+<footer>Gestión · Manual de uso · Noviembre de 2026</footer>
+</div></body></html>
